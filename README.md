@@ -68,6 +68,31 @@ The rename matters — `gh` prefers `GH_TOKEN` over its stored credentials, so
 exporting it under that name on the host would re-authenticate every host
 terminal as this account.
 
+It is a fine-grained PAT scoped to this repository alone, with:
+
+| Permission    | Level        | For                                                   |
+| ------------- | ------------ | ----------------------------------------------------- |
+| Metadata      | read         | mandatory on every fine-grained token                 |
+| Contents      | read & write | `git push` over HTTPS, reading branches               |
+| Pull requests | read & write | `make pr`, `pr-list`, `pr-view`, `pr-close`           |
+| Actions       | read & write | `make gh-runs`, `gh-watch`, `gh-rerun`, `gh-dispatch` |
+| Workflows     | read & write | pushing any commit that edits `.github/workflows/`    |
+
+`Workflows` is not optional here, because this repo has workflows: GitHub refuses
+a workflow-file change from a token without it, and reports a generic push
+rejection that names nothing.
+
+The published repo needs no token at all — the Action pushes to it with
+`DEPLOY_KEY`, not with a PAT.
+
+Deliberately **not** on this token: `Secrets: write` and `Administration: write`.
+They are only needed to create the `DEPLOY_KEY` secret or the ruleset through the
+API rather than the settings pages, which is a one-time job. `Administration` is
+the whole settings surface — rename, transfer, visibility, collaborators, delete
+the repository — and this token lives in a shell environment to open pull
+requests. For the API route, make a separate token with a short expiry and delete
+it afterwards.
+
 ## Commands
 
 ```shell
