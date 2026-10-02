@@ -66,24 +66,33 @@ Consequences worth remembering:
   public half a write-enabled deploy key on the `.github.io` repo. Not a PAT.
 - `public/` is a build artifact. It is gitignored and must never be committed.
 - The publish step cannot be rehearsed locally. `act` would run it for real.
-  Verify with `make prod`, which reproduces the CI build command exactly.
+  Verify with `make prod`, which runs CI's build command in memory, or `make build`
+  if you want the files on disk.
 
 ## Commands
 
 `make` on its own prints the annotated list, grouped. The ones worth knowing:
 
 ```shell
-make dev        # authoring: live reload, drafts and future posts, :8043
+make dev        # authoring: live reload, drafts, internal section, :8043
 make preview    # what ships: production env, minified, no drafts, :8043
-make prod       # write public/ exactly as CI does
+make prod       # verify CI's build succeeds, in memory; writes nothing
+make build      # the only target that writes public/; prunes unless CLEAN=0
 make clean      # remove public/, resources/, .hugo_build.lock
 make theme-update  # bump Hextra to the latest tagged release
 npm run format  # prettier, including Go templates
 ```
 
-`make dev` for writing, `make preview` for checking what ships — drafts and
-`hugo.IsProduction`-gated features (analytics, among others) behave differently
-between them.
+`make dev` for writing, `make preview` for checking what ships — drafts, the
+internal section and `hugo.IsProduction`-gated features (analytics among them)
+behave differently between them.
+
+Only `build` writes `public/`. Both servers pass `--renderToMemory`, because
+`hugo server` otherwise overlays its in-memory render on the real `publishDir` and
+serves pages left there by a different target — which is how `make preview` came to
+serve the internal section while the production build excluded it. `prod` renders to
+memory for the same reason: a verification should not leave output behind for the
+next command to trip over.
 
 ### Creating content
 
@@ -165,7 +174,7 @@ is a mount exclusion rather than `draft: true`: `--buildDrafts` publishes a draf
 while no flag publishes an unmounted file.
 
 `hugo server` defaults to the development environment and `hugo` to production, so
-`make dev` shows the section and `make prod`, `make preview` and CI cannot. The
+`make dev` shows the section and `make build`, `make preview` and CI cannot. The
 navbar entry lives in `config/development/hugo.yaml` for the same reason; menus
 merge by identifier, so it adds one item without restating the others.
 
