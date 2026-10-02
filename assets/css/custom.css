@@ -1,0 +1,47 @@
+/* Site-level CSS overrides.
+ *
+ * Hextra loads this file automatically when it exists, after the theme's own
+ * compiled stylesheet, so anything declared here wins on equal specificity.
+ */
+
+/* Badges written next to each other are separated only by a collapsed word
+ * space — about 4px — so a row of them reads as one run-on pill. The theme
+ * solves the same problem for buttons by giving each one its own inline-end
+ * margin (see the comment in the theme's button.css); this does it from the
+ * outside, for badges.
+ *
+ * Adjacent-sibling only, and on both the linked and unlinked forms, so a badge
+ * used inline in a sentence still sits tight against the words around it and a
+ * trailing badge gets no stray margin. */
+.hextra-badge + .hextra-badge,
+.hextra-badge + .hextra-badge-link,
+.hextra-badge-link + .hextra-badge,
+.hextra-badge-link + .hextra-badge-link {
+  margin-inline-start: 0.375rem;
+}
+
+/* Tab icons take the colour of their label.
+ *
+ * Most icon sets draw in `currentColor` and need nothing here, but the palette
+ * sets - catppuccin among them - carry hardcoded hex in `fill` and `stroke`
+ * attributes on the paths themselves. Iconify cannot recolour those: `?color=`
+ * applies to `currentColor` icons only and is ignored for the rest. The icon
+ * arrives inlined in the page, though, and a CSS declaration outranks a
+ * presentation attribute, so the override belongs here.
+ *
+ * Deliberately every icon in a tab strip rather than one set: a row that mixes
+ * a brand mark against a palette icon is what looks wrong, and the tab label
+ * is text - its icon reading as text is the point, including when the theme
+ * recolours the selected tab.
+ *
+ * `:not([*="none"])` keeps `fill="none"` intact; overwriting it fills the
+ * counters of every outline icon solid. */
+.hextra-tabs-toggle svg[stroke]:not([stroke="none"]),
+.hextra-tabs-toggle svg [stroke]:not([stroke="none"]) {
+  stroke: currentColor;
+}
+
+.hextra-tabs-toggle svg[fill]:not([fill="none"]),
+.hextra-tabs-toggle svg [fill]:not([fill="none"]) {
+  fill: currentColor;
+}

@@ -1,0 +1,1279 @@
+{
+  "Hextra: callout": {
+    "scope": "markdown",
+    "prefix": "hxcallout",
+    "body": [
+      "{{< callout type=\"${1|default,info,warning,error,important|}\" >}}",
+      "  ${2:Content}",
+      "{{< /callout >}}"
+    ],
+    "description": "Callout box. Each type picks its own color and default icon (layouts/_shortcodes/callout.html)."
+  },
+  "Hextra: callout with emoji": {
+    "scope": "markdown",
+    "prefix": "hxcallout-emoji",
+    "body": [
+      "{{< callout emoji=\"${1:🌐}\" >}}",
+      "  ${2:Content}",
+      "{{< /callout >}}"
+    ],
+    "description": "Callout with a custom emoji instead of the type's default icon."
+  },
+  "Hextra: callout with icon": {
+    "scope": "markdown",
+    "prefix": "hxcallout-icon",
+    "body": [
+      "{{< callout type=\"${1|default,info,warning,error,important|}\" icon=\"${2:sparkles}\" >}}",
+      "  ${3:Content}",
+      "{{< /callout >}}"
+    ],
+    "description": "Callout with an explicit icon name from data/icons.yaml."
+  },
+  "Hextra: cards": {
+    "scope": "markdown",
+    "prefix": "hxcards",
+    "body": [
+      "{{< cards cols=\"${1|2,3,4|}\" >}}",
+      "  {{< card link=\"${2:/docs}\" title=\"${3:Title}\" icon=\"${4:sparkles}\" >}}",
+      "  {{< card link=\"${5:/docs}\" title=\"${6:Title}\" icon=\"${7:document-text}\" >}}",
+      "{{< /cards >}}"
+    ],
+    "description": "Card grid container with two cards. cols defaults to 3."
+  },
+  "Hextra: card": {
+    "scope": "markdown",
+    "prefix": "hxcard",
+    "body": [
+      "{{< card link=\"${1:/docs}\" title=\"${2:Title}\" icon=\"${3:sparkles}\" subtitle=\"${4:Subtitle}\" >}}"
+    ],
+    "description": "Single card. Self-closing; goes inside a cards container."
+  },
+  "Hextra: card with tag": {
+    "scope": "markdown",
+    "prefix": "hxcard-tag",
+    "body": [
+      "{{< card link=\"${1:/docs}\" title=\"${2:Title}\" tag=\"${3:tag text}\" tagColor=\"${4|gray,purple,indigo,blue,green,yellow,orange,amber,red|}\" tagIcon=\"${5:sparkles}\" tagBorder=${6|true,false|} >}}"
+    ],
+    "description": "Card with a badge tag. tagColor accepts the nine badge colors; tagType is the deprecated alias."
+  },
+  "Hextra: card with image": {
+    "scope": "markdown",
+    "prefix": "hxcard-image",
+    "body": [
+      "{{< card link=\"${1:/docs}\" title=\"${2:Title}\" image=\"${3:images/cover.png}\" alt=\"${4:Alt text}\" subtitle=\"${5:Subtitle}\" method=\"${6|Resize,Fit,Fill,Crop|}\" options=\"${7:600x400 webp q80}\" imageStyle=\"${8:object-fit:cover; aspect-ratio:16/9;}\" >}}"
+    ],
+    "description": "Image card. method/options are passed to Hugo's image processing; alt defaults to title."
+  },
+  "Hextra: tabs": {
+    "scope": "markdown",
+    "prefix": "hxtabs",
+    "body": [
+      "{{< tabs >}}",
+      "  {{< tab name=\"${1:First}\" >}}${2:Content}{{< /tab >}}",
+      "  {{< tab name=\"${3:Second}\" >}}${4:Content}{{< /tab >}}",
+      "{{< /tabs >}}"
+    ],
+    "description": "Tabbed interface. Names live on each tab; the items/defaultIndex params are deprecated."
+  },
+  "Hextra: tab": {
+    "scope": "markdown",
+    "prefix": "hxtab",
+    "body": [
+      "{{< tab name=\"${1:Name}\" icon=\"${2:document-text}\" selected=${3|true,false|} >}}${4:Content}{{< /tab >}}"
+    ],
+    "description": "One tab. selected marks the initially open tab."
+  },
+  "Hextra: steps": {
+    "scope": "markdown",
+    "prefix": "hxsteps",
+    "body": [
+      "{{% steps %}}",
+      "",
+      "### ${1:Step 1}",
+      "",
+      "${2:Description}",
+      "",
+      "### ${3:Step 2}",
+      "",
+      "${4:Description}",
+      "",
+      "{{% /steps %}}"
+    ],
+    "description": "Numbered step list. Uses {{% %}} notation; h3 headings become steps. Add {class=\"no-step-marker\"} to a heading to skip it."
+  },
+  "Hextra: details": {
+    "scope": "markdown",
+    "prefix": "hxdetails",
+    "body": [
+      "{{% details title=\"${1:Details}\" closed=\"${2|true,false|}\" %}}",
+      "",
+      "${3:Content}",
+      "",
+      "{{% /details %}}"
+    ],
+    "description": "Collapsible block. Uses {{% %}} notation so the inner Markdown renders."
+  },
+  "Hextra: filetree": {
+    "scope": "markdown",
+    "prefix": "hxfiletree",
+    "body": [
+      "{{< filetree/container >}}",
+      "  {{< filetree/folder name=\"${1:content}\" >}}",
+      "    {{< filetree/file name=\"${2:_index.md}\" >}}",
+      "  {{< /filetree/folder >}}",
+      "{{< /filetree/container >}}"
+    ],
+    "description": "File tree diagram."
+  },
+  "Hextra: filetree folder": {
+    "scope": "markdown",
+    "prefix": "hxfiletree-folder",
+    "body": [
+      "{{< filetree/folder name=\"${1:docs}\" state=\"${2|open,closed|}\" >}}",
+      "  ${3}",
+      "{{< /filetree/folder >}}"
+    ],
+    "description": "Folder node in a file tree."
+  },
+  "Hextra: filetree file": {
+    "scope": "markdown",
+    "prefix": "hxfiletree-file",
+    "body": [
+      "{{< filetree/file name=\"${1:_index.md}\" >}}"
+    ],
+    "description": "File node in a file tree."
+  },
+  "Hextra: gallery": {
+    "scope": "markdown",
+    "prefix": "hxgallery",
+    "body": [
+      "{{< gallery type=\"${1|grid,mosaic,masonry,carousel|}\" cols=\"${2:3}\" gap=\"${3:0.5rem}\" >}}",
+      "  {{< gallery-item src=\"${4:images/one.jpg}\" caption=\"${5:Caption}\" >}}",
+      "  {{< gallery-item src=\"${6:images/two.jpg}\" caption=\"${7:Caption}\" >}}",
+      "{{< /gallery >}}"
+    ],
+    "description": "Image gallery with PhotoSwipe lightbox. cols is ignored for masonry."
+  },
+  "Hextra: gallery item": {
+    "scope": "markdown",
+    "prefix": "hxgallery-item",
+    "body": [
+      "{{< gallery-item src=\"${1:images/photo.jpg}\" alt=\"${2:Alt text}\" caption=\"${3:Caption}\" span=\"${4|wide,tall,large|}\" >}}"
+    ],
+    "description": "Gallery image. span is a mosaic hint: wide (2 cols), tall (2 rows), large (2x2)."
+  },
+  "Hextra: gallery item (remote)": {
+    "scope": "markdown",
+    "prefix": "hxgallery-item-remote",
+    "body": [
+      "{{< gallery-item src=\"${1:https://example.com/full.jpg}\" thumb=\"${2:https://example.com/thumb.jpg}\" width=\"${3:1200}\" height=\"${4:1200}\" caption=\"${5:Caption}\" >}}"
+    ],
+    "description": "Remote gallery image. width/height are required — they can't be auto-detected, and the lightbox needs them."
+  },
+  "Hextra: badge": {
+    "scope": "markdown",
+    "prefix": "hxbadge",
+    "body": [
+      "{{< badge content=\"${1:Badge}\" color=\"${2|gray,purple,indigo,blue,green,yellow,orange,amber,red|}\" icon=\"${3:sparkles}\" >}}"
+    ],
+    "description": "Badge. The old type= names (default/tip/info/warning/error/important) still map onto colors."
+  },
+  "Hextra: badge (inline)": {
+    "scope": "markdown",
+    "prefix": "hxbadge-inline",
+    "body": [
+      "{{< badge \"${1:Badge}\" >}}"
+    ],
+    "description": "Badge, positional short form."
+  },
+  "Hextra: badge (link)": {
+    "scope": "markdown",
+    "prefix": "hxbadge-link",
+    "body": [
+      "{{< badge content=\"${1:Badge}\" color=\"${2|gray,purple,indigo,blue,green,yellow,orange,amber,red|}\" link=\"${3:https://example.com}\" border=${4|true,false|} >}}"
+    ],
+    "description": "Badge wrapped in a link (opens in a new tab)."
+  },
+  "Hextra: icon": {
+    "scope": "markdown",
+    "prefix": "hxicon",
+    "body": [
+      "{{< icon \"${1:github}\" >}}"
+    ],
+    "description": "Inline SVG icon. Names come from data/icons.yaml."
+  },
+  "Hextra: icon (remote)": {
+    "scope": "markdown",
+    "prefix": "hxicon-remote",
+    "body": [
+      "{{< icon name=\"${1|lucide,tabler,tabler-filled,simple,iconify|}:${2:rocket}\" attributes=\"${3:height=20}\" >}}"
+    ],
+    "description": "Icon fetched from a remote provider, enabled by default. lucide/tabler/tabler-filled/simple take the pack's own name; iconify takes set/icon. Set params.icons.remote.enable: false to turn it off."
+  },
+  "Hextra: jupyter": {
+    "scope": "markdown",
+    "prefix": "hxjupyter",
+    "body": [
+      "{{< jupyter src=\"${1:notebook.ipynb}\" prompts=${2|true,false|} >}}"
+    ],
+    "description": "Render a Jupyter notebook. prompts shows the In[]/Out[] execution counts."
+  },
+  "Hextra: pdf": {
+    "scope": "markdown",
+    "prefix": "hxpdf",
+    "body": [
+      "{{< pdf \"${1:document.pdf}\" >}}"
+    ],
+    "description": "Embed a PDF."
+  },
+  "Hextra: asciinema": {
+    "scope": "markdown",
+    "prefix": "hxasciinema",
+    "body": [
+      "{{< asciinema file=\"${1:demo.cast}\" theme=\"${2:asciinema}\" speed=\"${3:1}\" autoplay=${4|true,false|} loop=${5|true,false|} poster=\"${6:npt:0:05}\" >}}"
+    ],
+    "description": "Asciinema terminal recording. file accepts a page resource, an asset path, or a remote URL."
+  },
+  "Hextra: term": {
+    "scope": "markdown",
+    "prefix": "hxterm",
+    "body": [
+      "{{< term \"${1:MAC}\" >}}"
+    ],
+    "description": "Glossary term. Matches on the abbreviation or the full term."
+  },
+  "Hextra: include": {
+    "scope": "markdown",
+    "prefix": "hxinclude",
+    "body": [
+      "{{% include \"${1:docs/shared/fragment}\" %}}"
+    ],
+    "description": "Inline another page's rendered content. Must use {{% %}} notation."
+  },
+  "Hextra: accordion": {
+    "scope": "markdown",
+    "prefix": "hxaccordion",
+    "body": [
+      "{{< accordion mode=\"${1|multiple,collapse|}\" >}}",
+      "  {{< accordion-item title=\"${2:First section}\" >}}",
+      "  ${3:Content}",
+      "  {{< /accordion-item >}}",
+      "  {{< accordion-item title=\"${4:Second section}\" >}}",
+      "  ${5:Content}",
+      "  {{< /accordion-item >}}",
+      "{{< /accordion >}}"
+    ],
+    "description": "Accordion container with two sections. mode=collapse closes the others when one opens (layouts/_shortcodes/accordion.html)."
+  },
+  "Hextra: accordion item": {
+    "scope": "markdown",
+    "prefix": "hxaccordion-item",
+    "body": [
+      "{{< accordion-item title=\"${1:Section title}\" icon=\"${2:check}\" open=${3|false,true|} >}}",
+      "${4:Content}",
+      "{{< /accordion-item >}}"
+    ],
+    "description": "One accordion section. Goes inside an accordion container."
+  },
+  "Hextra: article": {
+    "scope": "markdown",
+    "prefix": "hxarticle",
+    "body": [
+      "{{< article link=\"${1:/blog/my-post}\" showSummary=${2|true,false|} compactSummary=${3|false,true|} cover=${4|true,false|} >}}"
+    ],
+    "description": "Card for another page on the site — its title, summary and cover image (layouts/_shortcodes/article.html)."
+  },
+  "Hextra: button": {
+    "scope": "markdown",
+    "prefix": "hxbutton",
+    "body": [
+      "{{< button href=\"${1:https://gohugo.io}\" target=\"${2:_blank}\" style=\"${3|primary,outline,ghost|}\" icon=\"${4:arrow-right}\" >}}${5:Label}{{< /button >}}"
+    ],
+    "description": "Link styled as a button. Use href for any URL (layouts/_shortcodes/button.html)."
+  },
+  "Hextra: button (internal page)": {
+    "scope": "markdown",
+    "prefix": "hxbutton-page",
+    "body": [
+      "{{< button pageRef=\"${1:/docs/guide/organize-files}\" style=\"${2|primary,outline,ghost|}\" >}}${3:Get started}{{< /button >}}"
+    ],
+    "description": "Button linking to an internal page by path, resolved by Hugo."
+  },
+  "Hextra: cta": {
+    "scope": "markdown",
+    "prefix": "hxcta",
+    "body": [
+      "{{< cta url=\"${1:/docs/guide/configuration}\" label=\"${2:Start building}\" style=\"${3|primary,outline,ghost|}\" icon=\"${4:arrow-right}\" >}}"
+    ],
+    "description": "Call-to-action button. label defaults to the learnMore translation (layouts/_shortcodes/cta.html)."
+  },
+  "Hextra: lead": {
+    "scope": "markdown",
+    "prefix": "hxlead",
+    "body": [
+      "{{< lead >}}${1:An opening sentence set larger than body text.}{{< /lead >}}"
+    ],
+    "description": "Lead paragraph (layouts/_shortcodes/lead.html)."
+  },
+  "Hextra: borderless table": {
+    "scope": "markdown",
+    "prefix": "hxborderless",
+    "body": [
+      "{{< borderless-table >}}",
+      "| Name | Type | Default |",
+      "| ---- | ---- | ------- |",
+      "| `${1:name}` | `${2:type}` | ${3:-} |",
+      "| `${4:name}` | `${5:type}` | ${6:-} |",
+      "{{< /borderless-table >}}"
+    ],
+    "description": "Reference table without cell borders (layouts/_shortcodes/borderless-table.html)."
+  },
+  "Hextra: keywords": {
+    "scope": "markdown",
+    "prefix": "hxkeywords",
+    "body": [
+      "{{< keywords >}}",
+      "  {{< keyword icon=\"${1:github}\" >}}${2:Hugo}{{< /keyword >}}",
+      "  {{< keyword >}}${3:Static sites}{{< /keyword >}}",
+      "{{< /keywords >}}"
+    ],
+    "description": "Keyword pill container with two keywords (layouts/_shortcodes/keywords.html)."
+  },
+  "Hextra: keyword": {
+    "scope": "markdown",
+    "prefix": "hxkeyword",
+    "body": [
+      "{{< keyword icon=\"${1:github}\" >}}${2:Keyword}{{< /keyword >}}"
+    ],
+    "description": "One keyword pill. Goes inside a keywords container."
+  },
+  "Hextra: stats": {
+    "scope": "markdown",
+    "prefix": "hxstats",
+    "body": [
+      "{{< stats cols=\"${1|1,2,3,4,5,6|}\" >}}",
+      "  {{< stat value=\"${2:40+}\" label=\"${3:Shortcodes}\" icon=\"${4:sparkles}\" >}}${5:Supporting sentence.}{{< /stat >}}",
+      "  {{< stat value=\"${6:20+}\" label=\"${7:Languages}\" >}}${8:Supporting sentence.}{{< /stat >}}",
+      "{{< /stats >}}"
+    ],
+    "description": "Metrics grid with two figures. cols defaults to 3 (layouts/_shortcodes/stats.html)."
+  },
+  "Hextra: stat": {
+    "scope": "markdown",
+    "prefix": "hxstat",
+    "body": [
+      "{{< stat value=\"${1:40+}\" label=\"${2:Shortcodes}\" icon=\"${3:sparkles}\" >}}${4:Supporting sentence.}{{< /stat >}}"
+    ],
+    "description": "One figure. Goes inside a stats container."
+  },
+  "Hextra: timeline": {
+    "scope": "markdown",
+    "prefix": "hxtimeline",
+    "body": [
+      "{{< timeline >}}",
+      "  {{< timeline-item header=\"${1:v1.0}\" subheader=\"${2:First release}\" badge=\"${3:2024}\" icon=\"${4:star}\" >}}",
+      "  ${5:Content}",
+      "  {{< /timeline-item >}}",
+      "{{< /timeline >}}"
+    ],
+    "description": "Timeline container with one entry (layouts/_shortcodes/timeline.html)."
+  },
+  "Hextra: timeline item": {
+    "scope": "markdown",
+    "prefix": "hxtimeline-item",
+    "body": [
+      "{{< timeline-item header=\"${1:v1.0}\" subheader=\"${2:First release}\" badge=\"${3:2024}\" badgeColor=\"${4|gray,purple,indigo,blue,green,yellow,orange,amber,red|}\" icon=\"${5:star}\" >}}",
+      "${6:Content}",
+      "{{< /timeline-item >}}"
+    ],
+    "description": "One timeline entry. badgeColor takes the nine badge colors."
+  },
+  "Hextra: swatches": {
+    "scope": "markdown",
+    "prefix": "hxswatches",
+    "body": [
+      "{{< swatches \"${1:#64748b}\" \"${2:#3b82f6}\" \"${3:#06b6d4}\" >}}"
+    ],
+    "description": "Color palette. Takes any number of positional hex codes (layouts/_shortcodes/swatches.html)."
+  },
+  "Hextra: list": {
+    "scope": "markdown",
+    "prefix": "hxlist",
+    "body": [
+      "{{< list limit=${1:6} title=\"${2:From the blog}\" cardView=${3|false,true|} where=\"${4:Type}\" value=\"${5:blog}\" >}}"
+    ],
+    "description": "List of pages. where/value filter the set, e.g. Type = blog (layouts/_shortcodes/list.html)."
+  },
+  "Hextra: chart": {
+    "scope": "markdown",
+    "prefix": "hxchart",
+    "body": [
+      "{{< chart title=\"${1:Votes per fruit}\" >}}",
+      "type: '${2|bar,line,pie,doughnut,radar,polarArea,scatter,bubble|}',",
+      "data: { labels: [${3:'Tomato', 'Apple'}], datasets: [{ label: '${4:# of votes}', data: [${5:12, 19}] }] }",
+      "{{< /chart >}}"
+    ],
+    "description": "Chart.js chart. The body is a Chart.js config without the outer braces; title is the accessible name (layouts/_shortcodes/chart.html)."
+  },
+  "Hextra: typeit": {
+    "scope": "markdown",
+    "prefix": "hxtypeit",
+    "body": [
+      "{{< typeit tag=\"${1|div,h1,h2,h3,h4,p,span|}\" speed=${2:100} breakLines=${3|true,false|} loop=${4|false,true|} >}}",
+      "${5:First line}",
+      "${6:Second line}",
+      "{{< /typeit >}}"
+    ],
+    "description": "Typewriter effect, one string per line. The text is in the page before the script runs (layouts/_shortcodes/typeit.html)."
+  },
+  "Hextra: video": {
+    "scope": "markdown",
+    "prefix": "hxvideo",
+    "body": [
+      "{{< video src=\"${1:demo.mp4}\" poster=\"${2:demo.png}\" caption=\"${3:A short demo}\" ratio=\"${4:16/9}\" fit=\"${5|contain,cover,fill|}\" preload=\"${6|metadata,none,auto|}\" >}}"
+    ],
+    "description": "Self-hosted video with controls (layouts/_shortcodes/video.html)."
+  },
+  "Hextra: video (autoplay loop)": {
+    "scope": "markdown",
+    "prefix": "hxvideo-autoplay",
+    "body": [
+      "{{< video src=\"${1:demo.mp4}\" autoplay=true loop=true muted=true controls=${2|false,true|} ratio=\"${3:16/9}\" >}}"
+    ],
+    "description": "Background-style video. autoplay implies muted; browsers block a sound-on autoplay."
+  },
+  "Hextra: youtube-lite": {
+    "scope": "markdown",
+    "prefix": "hxyoutube",
+    "body": [
+      "{{< youtube-lite id=\"${1:dQw4w9WgXcQ}\" label=\"${2:Video title}\" params=\"${3:start=130}\" >}}"
+    ],
+    "description": "YouTube embed that loads the player only on click. label names the play button (layouts/_shortcodes/youtube-lite.html)."
+  },
+  "Hextra: email": {
+    "scope": "markdown",
+    "prefix": "hxemail",
+    "body": [
+      "{{< email email=\"${1:hello@example.com}\" text=\"${2:Get in touch}\" subject=\"${3:Hello}\" >}}"
+    ],
+    "description": "Obfuscated mailto link. Also takes body, cc and bcc (layouts/_shortcodes/email.html)."
+  },
+  "Hextra: github repo card": {
+    "scope": "markdown",
+    "prefix": "hxgithub",
+    "body": [
+      "{{< github repo=\"${1:homelabcentral/hextra}\" showThumbnail=${2|false,true|} >}}"
+    ],
+    "description": "GitHub repository card. Fetched at build time; needs params.remoteFetch.enable (layouts/_shortcodes/github.html)."
+  },
+  "Hextra: gitlab repo card": {
+    "scope": "markdown",
+    "prefix": "hxgitlab",
+    "body": [
+      "{{< gitlab project=\"${1:gitlab-org/gitlab}\" baseURL=\"${2:https://gitlab.com}\" showThumbnail=${3|false,true|} >}}"
+    ],
+    "description": "GitLab project card by namespace path (layouts/_shortcodes/gitlab.html)."
+  },
+  "Hextra: gitlab repo card (project id)": {
+    "scope": "markdown",
+    "prefix": "hxgitlab-id",
+    "body": [
+      "{{< gitlab projectID=\"${1:278964}\" showThumbnail=${2|false,true|} >}}"
+    ],
+    "description": "GitLab project card by numeric id, which survives a rename."
+  },
+  "Hextra: gitea repo card": {
+    "scope": "markdown",
+    "prefix": "hxgitea",
+    "body": [
+      "{{< gitea server=\"${1:https://git.example.com}\" repo=\"${2:owner/name}\" showThumbnail=${3|false,true|} >}}"
+    ],
+    "description": "Gitea repository card. server is required (layouts/_shortcodes/gitea.html)."
+  },
+  "Hextra: forgejo repo card": {
+    "scope": "markdown",
+    "prefix": "hxforgejo",
+    "body": [
+      "{{< forgejo server=\"${1:https://v11.next.forgejo.org}\" repo=\"${2:owner/name}\" showThumbnail=${3|false,true|} >}}"
+    ],
+    "description": "Forgejo repository card. server is required (layouts/_shortcodes/forgejo.html)."
+  },
+  "Hextra: codeberg repo card": {
+    "scope": "markdown",
+    "prefix": "hxcodeberg",
+    "body": [
+      "{{< codeberg repo=\"${1:forgejo/forgejo}\" showThumbnail=${2|false,true|} >}}"
+    ],
+    "description": "Codeberg repository card. server defaults to codeberg.org (layouts/_shortcodes/codeberg.html)."
+  },
+  "Hextra: huggingface model card": {
+    "scope": "markdown",
+    "prefix": "hxhuggingface",
+    "body": [
+      "{{< huggingface model=\"${1:google-bert/bert-base-uncased}\" showThumbnail=${2|false,true|} >}}"
+    ],
+    "description": "Hugging Face model card (layouts/_shortcodes/huggingface.html)."
+  },
+  "Hextra: huggingface dataset card": {
+    "scope": "markdown",
+    "prefix": "hxhuggingface-dataset",
+    "body": [
+      "{{< huggingface dataset=\"${1:stanfordnlp/imdb}\" showThumbnail=${2|false,true|} >}}"
+    ],
+    "description": "Hugging Face dataset card. model and dataset are mutually exclusive."
+  },
+  "Hextra: ansible role card": {
+    "scope": "markdown",
+    "prefix": "hxansible",
+    "body": [
+      "{{< ansible role=\"${1:geerlingguy.docker}\" >}}"
+    ],
+    "description": "Ansible Galaxy role card, given as namespace.name (layouts/_shortcodes/ansible.html)."
+  },
+  "Hextra: ansible collection card": {
+    "scope": "markdown",
+    "prefix": "hxansible-collection",
+    "body": [
+      "{{< ansible collection=\"${1:community.general}\" >}}"
+    ],
+    "description": "Ansible Galaxy collection card. role and collection are mutually exclusive."
+  },
+  "Hextra: command": {
+    "scope": "markdown",
+    "prefix": "hxcommand",
+    "body": [
+      "{{< command >}}",
+      "${1:claude add skill hextra}",
+      "{{< /command >}}"
+    ],
+    "description": "A shell command rendered as text: prompt glyph in the accent colour, command coloured by Chroma (layouts/_shortcodes/command.html)."
+  },
+  "Hextra: command (custom prompt)": {
+    "scope": "markdown",
+    "prefix": "hxcommand-prompt",
+    "body": [
+      "{{< command prompt=\"${1:>}\" >}}",
+      "${2:npm install}",
+      "${3:npm run dev}",
+      "{{< /command >}}"
+    ],
+    "description": "Command block with a prompt glyph other than params.command.prompt."
+  },
+  "Hextra: gist": {
+    "scope": "markdown",
+    "prefix": "hxgist",
+    "body": [
+      "{{< gist id=\"${1:6cad326836d38bd3a7ae}\" file=\"${2:hello_world.rb}\" >}}"
+    ],
+    "description": "GitHub gist rendered with the theme's own code block. Omit file to render every file (layouts/_shortcodes/gist.html)."
+  },
+  "Hextra: gist (live)": {
+    "scope": "markdown",
+    "prefix": "hxgist-live",
+    "body": [
+      "{{< gist id=\"${1:6cad326836d38bd3a7ae}\" lineNos=${2|true,false|} hl_lines=\"${3:3-5}\" live=true >}}"
+    ],
+    "description": "Gist re-fetched in the reader's browser and refreshed if it changed since the build. Not applied to anonymous gists or files the API truncated."
+  },
+  "Hextra: codeimporter": {
+    "scope": "markdown",
+    "prefix": "hxcodeimporter",
+    "body": [
+      "{{< codeimporter url=\"${1:https://raw.githubusercontent.com/owner/repo/main/main.go}\" type=\"${2:go}\" filename=\"${3:auto}\" >}}"
+    ],
+    "description": "Import a file from a URL as a code block. filename=auto uses the URL's last segment (layouts/_shortcodes/codeimporter.html)."
+  },
+  "Hextra: codeimporter (excerpt with line numbers)": {
+    "scope": "markdown",
+    "prefix": "hxcodeimporter-lines",
+    "body": [
+      "{{< codeimporter url=\"${1:https://raw.githubusercontent.com/owner/repo/main/main.go}\" type=\"${2:go}\" startLine=\"${3:10}\" endLine=\"${4:20}\" lineNos=true lineNoStart=\"${5:10}\" hl_lines=\"${6:3-5}\" >}}"
+    ],
+    "description": "Imported excerpt. hl_lines numbers the excerpt, not the original file; lineNoStart restores the source's numbering."
+  },
+  "Hextra: codeimporter (live)": {
+    "scope": "markdown",
+    "prefix": "hxcodeimporter-live",
+    "body": [
+      "{{< codeimporter url=\"${1:https://raw.githubusercontent.com/owner/repo/main/main.go}\" type=\"${2:go}\" filename=\"${3:main.go}\" live=true >}}"
+    ],
+    "description": "Imported file re-fetched in the reader's browser and refreshed if it changed. The host must send Access-Control-Allow-Origin."
+  },
+  "Hextra: ltr block": {
+    "scope": "markdown",
+    "prefix": "hxltr",
+    "body": [
+      "{{% ltr %}}",
+      "${1:Content that reads left to right}",
+      "{{% /ltr %}}"
+    ],
+    "description": "Force left-to-right direction inside an RTL page. Must use {{% %}} notation."
+  },
+  "Hextra: rtl block": {
+    "scope": "markdown",
+    "prefix": "hxrtl",
+    "body": [
+      "{{% rtl %}}",
+      "${1:محتوى يقرأ من اليمين إلى اليسار}",
+      "{{% /rtl %}}"
+    ],
+    "description": "Force right-to-left direction inside an LTR page. Must use {{% %}} notation."
+  },
+  "Hextra: hero (full home block)": {
+    "scope": "markdown",
+    "prefix": "hxhero",
+    "body": [
+      "{{< hextra/hero-badge link=\"${1:https://github.com/homelabcentral/hextra/releases}\" >}}",
+      "  <div class=\"hx:w-2 hx:h-2 hx:rounded-full hx:bg-hextra-accent-400\"></div>",
+      "  <span>${2:New release}</span>",
+      "{{< /hextra/hero-badge >}}",
+      "",
+      "<div class=\"hx:mt-6 hx:mb-6\">",
+      "{{< hextra/hero-headline >}}",
+      "  ${3:Build modern docs}",
+      "{{< /hextra/hero-headline >}}",
+      "</div>",
+      "",
+      "<div class=\"hx:mb-12\">",
+      "{{< hextra/hero-subtitle >}}",
+      "  ${4:Fast, batteries-included, and beautiful}",
+      "{{< /hextra/hero-subtitle >}}",
+      "</div>",
+      "",
+      "<div class=\"hx:mb-6\">",
+      "{{< hextra/hero-button text=\"${5:Get Started}\" link=\"${6:docs}\" >}}",
+      "</div>"
+    ],
+    "description": "Complete hero block for a layout: hextra-home page."
+  },
+  "Hextra: hero container": {
+    "scope": "markdown",
+    "prefix": "hxhero-container",
+    "body": [
+      "{{< hextra/hero-container cols=\"${1:2}\" image=\"${2:images/hero.png}\" imageLink=\"${3:https://example.com}\" imageTitle=\"${4:Title}\" imageWidth=\"${5:350}\" imageHeight=\"${6:350}\" imageCard=${7|true,false|} >}}",
+      "  ${8:Content}",
+      "{{< /hextra/hero-container >}}"
+    ],
+    "description": "Hero container with a side image. cols defaults to 2, image dimensions to 350."
+  },
+  "Hextra: hero headline": {
+    "scope": "markdown",
+    "prefix": "hxhero-headline",
+    "body": [
+      "{{< hextra/hero-headline >}}",
+      "  ${1:Headline}",
+      "{{< /hextra/hero-headline >}}"
+    ],
+    "description": "Large hero headline."
+  },
+  "Hextra: hero subtitle": {
+    "scope": "markdown",
+    "prefix": "hxhero-subtitle",
+    "body": [
+      "{{< hextra/hero-subtitle >}}",
+      "  ${1:Subtitle}",
+      "{{< /hextra/hero-subtitle >}}"
+    ],
+    "description": "Hero subtitle."
+  },
+  "Hextra: hero badge": {
+    "scope": "markdown",
+    "prefix": "hxhero-badge",
+    "body": [
+      "{{< hextra/hero-badge link=\"${1:https://example.com}\" >}}",
+      "  ${2:Badge text}",
+      "{{< /hextra/hero-badge >}}"
+    ],
+    "description": "Pill badge above the hero headline."
+  },
+  "Hextra: hero button": {
+    "scope": "markdown",
+    "prefix": "hxhero-button",
+    "body": [
+      "{{< hextra/hero-button text=\"${1:Get Started}\" link=\"${2:docs}\" >}}"
+    ],
+    "description": "Hero call-to-action button."
+  },
+  "Hextra: hero section": {
+    "scope": "markdown",
+    "prefix": "hxhero-section",
+    "body": [
+      "{{< hextra/hero-section heading=\"${1|h2,h3,h4|}\" >}}",
+      "  ${2:Section heading}",
+      "{{< /hextra/hero-section >}}"
+    ],
+    "description": "Section heading for the home layout. heading defaults to h2."
+  },
+  "Hextra: feature grid": {
+    "scope": "markdown",
+    "prefix": "hxfeature-grid",
+    "body": [
+      "{{< hextra/feature-grid cols=\"${1|2,3,4|}\" >}}",
+      "  {{< hextra/feature-card",
+      "    title=\"${2:Feature}\"",
+      "    subtitle=\"${3:What it does.}\"",
+      "  >}}",
+      "  {{< hextra/feature-card",
+      "    title=\"${4:Feature}\"",
+      "    subtitle=\"${5:What it does.}\"",
+      "  >}}",
+      "{{< /hextra/feature-grid >}}"
+    ],
+    "description": "Feature grid for the home layout."
+  },
+  "Hextra: feature card": {
+    "scope": "markdown",
+    "prefix": "hxfeature-card",
+    "body": [
+      "{{< hextra/feature-card",
+      "  title=\"${1:Feature}\"",
+      "  subtitle=\"${2:What it does.}\"",
+      "  icon=\"${3:sparkles}\"",
+      "  link=\"${4:/docs}\"",
+      ">}}"
+    ],
+    "description": "Feature card. Add image/imageClass/style for the image variant."
+  },
+  "Hextra: feature card (image)": {
+    "scope": "markdown",
+    "prefix": "hxfeature-card-image",
+    "body": [
+      "{{< hextra/feature-card",
+      "  title=\"${1:Feature}\"",
+      "  subtitle=\"${2:What it does.}\"",
+      "  image=\"${3:images/feature.png}\"",
+      "  imageClass=\"hx:top-[40%] hx:left-[24px] hx:w-[180%] hx:sm:w-[110%] hx:dark:opacity-80\"",
+      "  style=\"background: radial-gradient(ellipse at 50% 80%, rgba(194,97,254,0.15), hsla(0,0%,100%,0));\"",
+      ">}}"
+    ],
+    "description": "Feature card with a background image, matching the Hextra home page pattern."
+  },
+  "Hextra: front matter (docs page)": {
+    "scope": "markdown",
+    "prefix": "hxfm-docs",
+    "body": [
+      "---",
+      "title: ${1:Page Title}",
+      "weight: ${2:1}",
+      "toc: ${3|true,false|}",
+      "breadcrumbs: ${4|true,false|}",
+      "math: ${5|true,false|}",
+      "excludeSearch: ${6|false,true|}",
+      "---",
+      "",
+      "$0"
+    ],
+    "description": "Docs page front matter. weight orders the sidebar; excludeSearch drops the page from the FlexSearch index."
+  },
+  "Hextra: front matter (section _index.md)": {
+    "scope": "markdown",
+    "prefix": "hxfm-section",
+    "body": [
+      "---",
+      "title: ${1:Section}",
+      "weight: ${2:1}",
+      "prev: ${3:/docs}",
+      "next: ${4:/docs/next-page}",
+      "sidebar:",
+      "  open: ${5|true,false|}",
+      "cascade:",
+      "  type: ${6|docs,blog|}",
+      "---",
+      "",
+      "$0"
+    ],
+    "description": "Section _index.md. cascade.type applies the layout to every descendant."
+  },
+  "Hextra: front matter (blog post)": {
+    "scope": "markdown",
+    "prefix": "hxfm-blog",
+    "body": [
+      "---",
+      "title: ${1:Post Title}",
+      "date: ${2:2026-01-01}",
+      "authors:",
+      "  - name: ${3:Author}",
+      "    link: ${4:https://github.com/username}",
+      "    image: ${5:https://github.com/username.png}",
+      "tags:",
+      "  - ${6:tag}",
+      "excludeSearch: ${7|false,true|}",
+      "---",
+      "",
+      "$0"
+    ],
+    "description": "Blog post front matter."
+  },
+  "Hextra: front matter series block": {
+    "scope": "markdown",
+    "prefix": "hxfm-series",
+    "body": [
+      "series:",
+      "  - ${1:Series Name}",
+      "seriesOrder: ${2:1}",
+      "seriesOpened: ${3|false,true|}",
+      "$0"
+    ],
+    "description": "Place a post in a series. seriesOrder sets its position; seriesOpened expands the series list on this post."
+  },
+  "Hextra: front matter (home page)": {
+    "scope": "markdown",
+    "prefix": "hxfm-home",
+    "body": [
+      "---",
+      "title: ${1:Site Title}",
+      "layout: hextra-home",
+      "---",
+      "",
+      "$0"
+    ],
+    "description": "Home page front matter for the hextra-home layout."
+  },
+  "Hextra: front matter sidebar block": {
+    "scope": "markdown",
+    "prefix": "hxfm-sidebar",
+    "body": [
+      "sidebar:",
+      "  open: ${1|true,false|}",
+      "  exclude: ${2|true,false|}",
+      "  hide: ${3|true,false|}"
+    ],
+    "description": "Sidebar controls: open expands the section, exclude drops the page from the sidebar, hide hides the sidebar on the page."
+  },
+  "Hextra: front matter page width": {
+    "scope": "markdown",
+    "prefix": "hxfm-width",
+    "body": [
+      "width: ${1|normal,wide,full|}"
+    ],
+    "description": "Page width override: normal 80rem, wide 90rem, full 100%."
+  },
+  "Hextra: front matter cascade": {
+    "scope": "markdown",
+    "prefix": "hxfm-cascade",
+    "body": [
+      "cascade:",
+      "  params:",
+      "    ${1:reversePagination}: ${2|false,true|}"
+    ],
+    "description": "Cascade a param to every descendant page. reversePagination: false keeps a blog series in chronological order."
+  },
+  "Hextra: code block with filename": {
+    "scope": "markdown",
+    "prefix": "hxcode",
+    "body": [
+      "```${1:go} {filename=\"${2:main.go}\"}",
+      "${3:code}",
+      "```"
+    ],
+    "description": "Fenced code block with a filename header (layouts/_markup/render-codeblock.html)."
+  },
+  "Hextra: code block with line numbers": {
+    "scope": "markdown",
+    "prefix": "hxcode-lines",
+    "body": [
+      "```${1:python} {filename=\"${2:hello.py}\",linenos=${3|table,inline|},hl_lines=[${4:2,4}],linenostart=${5:1}}",
+      "${6:code}",
+      "```"
+    ],
+    "description": "Code block with line numbers and highlighted lines."
+  },
+  "Hextra: code block with base_url": {
+    "scope": "markdown",
+    "prefix": "hxcode-baseurl",
+    "body": [
+      "```${1:go} {base_url=\"${2:https://github.com/homelabcentral/hextra/blob/main/}\",filename=\"${3:go.mod}\"}",
+      "${4:code}",
+      "```"
+    ],
+    "description": "Code block whose filename header links to the source, base_url + filename."
+  },
+  "Hextra: mermaid diagram": {
+    "scope": "markdown",
+    "prefix": "hxmermaid",
+    "body": [
+      "```mermaid",
+      "${1:graph LR;}",
+      "${2:  A --> B;}",
+      "```"
+    ],
+    "description": "Mermaid diagram (layouts/_markup/render-codeblock-mermaid.html)."
+  },
+  "Hextra: math block": {
+    "scope": "markdown",
+    "prefix": "hxmath",
+    "body": [
+      "\\$\\$",
+      "${1:f(x) = x^2}",
+      "\\$\\$"
+    ],
+    "description": "Display math block. Needs math: true in the page front matter."
+  },
+  "Hextra: ad": {
+    "scope": "markdown",
+    "prefix": "hxad",
+    "body": [
+      "{{< ad slot=\"${1:1234567890}\" >}}"
+    ],
+    "description": "One ad at this point in the page. Needs params.ads configured (layouts/_shortcodes/ad.html)."
+  },
+  "Hextra: ad with provider": {
+    "scope": "markdown",
+    "prefix": "hxadprovider",
+    "body": [
+      "{{< ad provider=\"${1|adsense,ethicalads,carbon,custom|}\" slot=\"${2:1234567890}\" format=\"${3|auto,fluid,rectangle,vertical,horizontal|}\" align=\"${4|center,left,right|}\" >}}"
+    ],
+    "description": "Ad with an explicit network and shape. Every parameter defaults to params.ads."
+  },
+  "Hextra: config: minimum viable site": {
+    "scope": "yaml",
+    "prefix": "hxcfg-minimal",
+    "body": [
+      "baseURL: \"${1:https://example.com/}\"",
+      "title: \"${2:My Site}\"",
+      "",
+      "module:",
+      "  hugoVersion:",
+      "    extended: true",
+      "    min: \"0.146.0\"",
+      "  imports:",
+      "    - path: github.com/homelabcentral/hextra",
+      "",
+      "markup:",
+      "  goldmark:",
+      "    renderer:",
+      "      unsafe: true"
+    ],
+    "description": "Smallest hugo.yaml that builds. unsafe: true is required by the home layout."
+  },
+  "Hextra: config: markup": {
+    "scope": "yaml",
+    "prefix": "hxcfg-markup",
+    "body": [
+      "markup:",
+      "  highlight:",
+      "    noClasses: false # required - the theme styles Chroma via CSS classes",
+      "  goldmark:",
+      "    renderer:",
+      "      unsafe: true",
+      "    extensions:",
+      "      passthrough: # required for LaTeX",
+      "        enable: true",
+      "        delimiters:",
+      "          block: [['\\\\[', '\\\\]'], [\"$$\", \"$$\"]]",
+      "          inline: [['\\\\(', '\\\\)']]"
+    ],
+    "description": "Goldmark and Chroma settings. noClasses: false is not optional for dark mode."
+  },
+  "Hextra: config: navbar": {
+    "scope": "yaml",
+    "prefix": "hxcfg-navbar",
+    "body": [
+      "params:",
+      "  navbar:",
+      "    displayTitle: ${1|true,false|}",
+      "    displayLogo: ${2|true,false|}",
+      "    logo:",
+      "      path: ${3:images/logo.svg}",
+      "      dark: ${4:images/logo-dark.svg}",
+      "      link: ${5:/}",
+      "      width: ${6:40}",
+      "      height: ${7:20}",
+      "    width: ${8|normal,wide,full|}"
+    ],
+    "description": "Navbar title, logo and width."
+  },
+  "Hextra: config: theme toggle": {
+    "scope": "yaml",
+    "prefix": "hxcfg-theme",
+    "body": [
+      "params:",
+      "  theme:",
+      "    default: ${1|system,light,dark|}",
+      "    displayToggle: ${2|true,false|}"
+    ],
+    "description": "Default colour scheme and whether the toggle is shown."
+  },
+  "Hextra: config: footer": {
+    "scope": "yaml",
+    "prefix": "hxcfg-footer",
+    "body": [
+      "params:",
+      "  footer:",
+      "    enable: ${1|true,false|}",
+      "    displayCopyright: ${2|true,false|}",
+      "    displayPoweredBy: ${3|true,false|}",
+      "    width: ${4|normal,wide,full|}"
+    ],
+    "description": "Footer visibility and width."
+  },
+  "Hextra: config: fonts": {
+    "scope": "yaml",
+    "prefix": "hxcfg-fonts",
+    "body": [
+      "params:",
+      "  fonts:",
+      "    enable: ${1|true,false|}",
+      "    heading: { family: \"${2:Sora}\", axes: \"${3:wght@100..800}\", display: \"swap\" }",
+      "    body: { family: \"${4:Mozilla Text}\", axes: \"${5:wght@200..700}\", display: \"swap\" }",
+      "    code: { family: \"${6:Google Sans Code}\", axes: \"${7:wght@300..700}\", display: \"swap\" }",
+      "    mono: { family: \"${8:IBM Plex Mono}\", axes: \"${9:wght@400;500;600}\", display: \"swap\" }",
+      "    fallbacks:",
+      "      heading: \"system-ui, sans-serif\"",
+      "      body: \"system-ui, sans-serif\"",
+      "      code: \"ui-monospace, monospace\"",
+      "      mono: \"ui-monospace, monospace\""
+    ],
+    "description": "Google Fonts with a fallback stack. Each family is one render-blocking request; not every family is variable."
+  },
+  "Hextra: config: search": {
+    "scope": "yaml",
+    "prefix": "hxcfg-search",
+    "body": [
+      "params:",
+      "  search:",
+      "    enable: ${1|true,false|}",
+      "    type: flexsearch",
+      "    flexsearch:",
+      "      index: ${2|content,summary,heading,title|}",
+      "      tokenize: ${3|forward,full,reverse,strict|}"
+    ],
+    "description": "FlexSearch index built at build time. index: content is largest and most useful."
+  },
+  "Hextra: config: page metadata": {
+    "scope": "yaml",
+    "prefix": "hxcfg-page-meta",
+    "body": [
+      "params:",
+      "  displayUpdatedDate: ${1|true,false|} # needs enableGitInfo: true",
+      "  displayUpdatedAuthor: ${2|false,true|}",
+      "  dateFormat: \"${3:January 2, 2006}\"",
+      "  editURL:",
+      "    enable: ${4|true,false|}",
+      "    base: \"${5:https://github.com/owner/repo/edit/main/content}\"",
+      "  toc:",
+      "    displayTags: ${6|true,false|}",
+      "  license:",
+      "    enable: ${7|true,false|}",
+      "    name: \"${8:CC BY 4.0}\"",
+      "    url: \"${9:https://creativecommons.org/licenses/by/4.0/}\""
+    ],
+    "description": "Last-updated date, edit link, TOC tags and licence notice."
+  },
+  "Hextra: config: code blocks": {
+    "scope": "yaml",
+    "prefix": "hxcfg-highlight",
+    "body": [
+      "params:",
+      "  highlight:",
+      "    copy:",
+      "      enable: ${1|true,false|}",
+      "      display: ${2|hover,always|}",
+      "    filenameIcon:",
+      "      enable: ${3|true,false|}",
+      "    lineNumberDivider:",
+      "      enable: ${4|false,true|}"
+    ],
+    "description": "Copy button, filename icons and the line-number divider."
+  },
+  "Hextra: config: remote fetching": {
+    "scope": "yaml",
+    "prefix": "hxcfg-remotefetch",
+    "body": [
+      "params:",
+      "  remoteFetch:",
+      "    enable: ${1|true,false|}",
+      "  include:",
+      "    allowedHosts:",
+      "      - ${2:raw.githubusercontent.com}"
+    ],
+    "description": "Master switch for every build-time fetch. false is what air-gapped builds need."
+  },
+  "Hextra: config: math": {
+    "scope": "yaml",
+    "prefix": "hxcfg-math",
+    "body": [
+      "params:",
+      "  math:",
+      "    engine: ${1|katex,mathjax|}",
+      "    katex:",
+      "      base: \"${2:}\"",
+      "      css: \"${3:}\"",
+      "      assets: \"${4:}\""
+    ],
+    "description": "Math engine. Anything other than katex emits MathJax delimiters."
+  },
+  "Hextra: config: comments (giscus)": {
+    "scope": "yaml",
+    "prefix": "hxcfg-comments",
+    "body": [
+      "params:",
+      "  comments:",
+      "    enable: ${1|true,false|}",
+      "    type: giscus",
+      "    giscus:",
+      "      repo: ${2:owner/repo}",
+      "      repoId: \"${3:R_...}\"",
+      "      category: ${4:General}",
+      "      categoryId: \"${5:DIC_...}\""
+    ],
+    "description": "Giscus comments. repoId and categoryId come from giscus.app for your own repo - copying someone else's posts to theirs."
+  },
+  "Hextra: config: announcement banner": {
+    "scope": "yaml",
+    "prefix": "hxcfg-banner",
+    "body": [
+      "params:",
+      "  banner:",
+      "    message: \"${1:🎉 **v2 is out** — [read the release notes](/blog/v2/).}\""
+    ],
+    "description": "Dismissible bar above the navbar. Presence is the switch; the message is Markdown."
+  },
+  "Hextra: config: ads": {
+    "scope": "yaml",
+    "prefix": "hxcfg-ads",
+    "body": [
+      "params:",
+      "  ads:",
+      "    enable: ${1|true,false|}",
+      "    provider: ${2|adsense,ethicalads,carbon,custom|}",
+      "    label: true",
+      "    height: ${3:280px}",
+      "    align: ${4|center,left,right|}",
+      "    production: true",
+      "    slots:",
+      "      blogBottom: \"${5:1111111111}\"",
+      "      blogEnd: \"${6:2222222222}\"",
+      "      blogList: { slot: \"${7:3333333333}\", every: 4, offset: 0 }",
+      "      docsBottom: \"${8:4444444444}\""
+    ],
+    "description": "Ad slots. Nothing renders until this block exists, and never outside a production build."
+  },
+  "Hextra: config: main menu": {
+    "scope": "yaml",
+    "prefix": "hxcfg-menu-main",
+    "body": [
+      "menu:",
+      "  main:",
+      "    - identifier: ${1:documentation}",
+      "      name: ${2:Documentation}",
+      "      pageRef: ${3:/docs}",
+      "      weight: 1",
+      "    - name: Search",
+      "      weight: 8",
+      "      params:",
+      "        type: search",
+      "    - name: GitHub",
+      "      url: \"${4:https://github.com/owner/repo}\"",
+      "      weight: 9",
+      "      params:",
+      "        icon: github"
+    ],
+    "description": "Navbar menu. pageRef for internal pages, url for external; a parent with no pageRef becomes a dropdown."
+  },
+  "Hextra: config: sidebar menu": {
+    "scope": "yaml",
+    "prefix": "hxcfg-menu-sidebar",
+    "body": [
+      "menu:",
+      "  sidebar:",
+      "    - identifier: ${1:more}",
+      "      name: ${2:More}",
+      "      params:",
+      "        type: separator",
+      "      weight: 1",
+      "    - name: \"${3:Hugo Docs ↗}\"",
+      "      url: \"${4:https://gohugo.io/documentation/}\"",
+      "      weight: 2"
+    ],
+    "description": "Extra sidebar entries, appended to the tree-generated navigation. type: separator is a heading rule."
+  },
+  "Hextra: config: blog menu": {
+    "scope": "yaml",
+    "prefix": "hxcfg-menu-blog",
+    "body": [
+      "menu:",
+      "  blog:",
+      "    - name: ${1:Home}",
+      "      pageRef: ${2:/}",
+      "      weight: 1",
+      "      params: { type: link, icon: ${3:home} }",
+      "    - name: GitHub",
+      "      url: \"${4:https://github.com/owner/repo}\"",
+      "      weight: 10",
+      "      params: { icon: github }"
+    ],
+    "description": "Blog rail navigation. Entries with a label become rows; icon-only entries collect into a social row."
+  },
+  "Hextra: config: languages": {
+    "scope": "yaml",
+    "prefix": "hxcfg-languages",
+    "body": [
+      "defaultContentLanguage: ${1:en}",
+      "languages:",
+      "  en:",
+      "    label: English",
+      "    weight: 1",
+      "    title: ${2:My Site}",
+      "  ${3:ja}:",
+      "    label: ${4:日本語}",
+      "    locale: ${5:ja-JP}",
+      "    weight: 2",
+      "    title: ${6:My Site}"
+    ],
+    "description": "Multilingual setup. Add direction: rtl to flip the layout for a language; any params key can be nested per language."
+  },
+  "Hextra: config: outputs": {
+    "scope": "yaml",
+    "prefix": "hxcfg-outputs",
+    "body": [
+      "outputs:",
+      "  home: [html, llms]",
+      "  page: [html, markdown]",
+      "  section: [html, rss, markdown]"
+    ],
+    "description": "Machine-readable output. The page context menu is gated on `markdown` in outputs.page; llms writes llms.txt."
+  },
+  "Hextra: config: page context menu": {
+    "scope": "yaml",
+    "prefix": "hxcfg-context-menu",
+    "body": [
+      "params:",
+      "  page:",
+      "    contextMenu:",
+      "      enable: ${1|true,false|}",
+      "      links:",
+      "        - name: ${2:Open in Claude}",
+      "          icon: ${3:claude}",
+      "          description: ${4:Ask questions about this page}",
+      "          url: \"${5:https://claude.ai/new?q=Reading+this+page%3A+{url\\}}\""
+    ],
+    "description": "Copy/view-as-Markdown menu plus custom links. Needs `markdown` in outputs.page. {url}, {title} and {markdown_url} are substituted per page, URL-encoded."
+  },
+  "Hextra: config: RSS and author": {
+    "scope": "yaml",
+    "prefix": "hxcfg-rss",
+    "body": [
+      "params:",
+      "  rss:",
+      "    sections: [${1:blog}]",
+      "  Author:",
+      "    name: ${2:Ada Lovelace}",
+      "    email: ${3:ada@example.com}"
+    ],
+    "description": "RSS sections and feed author. params.Author is capitalised - Hugo's own convention - and without email none of managingEditor, webMaster or author are emitted."
+  },
+  "Hextra: config: images": {
+    "scope": "yaml",
+    "prefix": "hxcfg-images",
+    "body": [
+      "params:",
+      "  enableImageLazyLoading: ${1|true,false|}",
+      "  imageZoom:",
+      "    enable: ${2|true,false|}",
+      "  images:",
+      "    contentMaxWidth: ${3:1920}"
+    ],
+    "description": "Image handling. Everything under assets/ is converted to WebP and measured; static/ is passed through untouched."
+  }
+}

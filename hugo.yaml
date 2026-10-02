@@ -1,0 +1,406 @@
+baseURL: "https://neo7.dev/"
+title: "neo7.dev"
+
+enableRobotsTXT: true
+# Attaches each page's last commit as .GitInfo and drives .Lastmod from it
+# (docs "Last updated" line, recent-posts order, og:article:modified_time).
+# Hard-requires a git repository with real history: without one the build
+# fails outright with "failed to load Git data", so CI checks out with
+# fetch-depth: 0 to give it real history.
+enableGitInfo: true
+enableInlineShortcodes: true
+
+# GA4 measurement ID. Public by design — it ships in the rendered page HTML.
+# Hextra only emits gtag.js on production builds (`hugo.IsProduction`), so
+# `hugo server` stays untracked; use `hugo server -e production` to verify.
+services:
+  googleAnalytics:
+    # TODO: own GA4 measurement ID for neo7.dev. Blank disables gtag.js entirely;
+    # Hextra only emits the snippet when this is non-empty, so the site ships
+    # untracked until a real ID is filled in.
+    ID: ""
+
+# Hextra owns category/tag/series, but Hugo gives `taxonomies` a merge strategy
+# of "none" and only honours a strategy set in the project config — so this is
+# the one line that opts the site in. Re-declaring the defaults is deliberate:
+# a block listing only `series` would silently drop `tag` and `category`.
+taxonomies:
+  _merge: shallow
+
+outputs:
+  home: [html, llms]
+  page: [html, markdown]
+  section: [html, rss, markdown]
+
+defaultContentLanguage: en
+languages:
+  en:
+    label: English
+    weight: 1
+    title: neo7.dev
+
+module:
+  hugoVersion:
+    extended: true
+    min: "0.146.0"
+  imports:
+    - path: github.com/homelabcentral/hextra
+
+markup:
+  highlight:
+    noClasses: false
+  goldmark:
+    renderer:
+      unsafe: true
+    extensions:
+      passthrough:
+        delimiters:
+          block: [['\[', '\]'], ["$$", "$$"]]
+          inline: [['\(', '\)']]
+        enable: true
+
+menu:
+  main:
+    - identifier: docs
+      name: Docs
+      pageRef: /docs
+      weight: 1
+    - identifier: blog
+      name: Blog
+      pageRef: /blog
+      weight: 3
+    - identifier: about
+      name: About
+      pageRef: /about
+      weight: 4
+    - name: Search
+      weight: 8
+      params:
+        type: search
+    - name: GitHub
+      weight: 9
+      url: "https://github.com/neo7dev/neo7dev.github.io"
+      params:
+        icon: github
+
+  # Left identity rail on blog pages. Entries with a label become navigation
+  # rows; entries with only params.icon become the social links row.
+  blog:
+    - identifier: home
+      name: Home
+      pageRef: /
+      weight: 1
+      params:
+        type: link
+        icon: home
+    - identifier: blog
+      name: Blog
+      pageRef: /blog
+      weight: 2
+      params:
+        type: link
+        icon: newspaper
+    - identifier: docs
+      name: Docs
+      pageRef: /docs
+      weight: 3
+      params:
+        type: link
+        icon: book-open
+    - identifier: about
+      name: About
+      pageRef: /about
+      weight: 5
+      params:
+        type: link
+        icon: user-circle
+    # Socials row: an entry is icon-only when it has params.icon and its
+    # params.type is NOT "link" (blog/menu.html). The nav rows above set
+    # type: link, so they stay labelled rows; these do not, so they collapse
+    # into the icon strip.
+    - name: GitHub
+      url: "https://github.com/neo7dev/neo7dev.github.io"
+      weight: 10
+      params:
+        icon: github
+    # TODO: add socials as they exist. An entry is icon-only when it has
+    # params.icon and no `params.type: link`. Non-bundled icons come from Simple
+    # Icons via the `simple:` prefix, which makes the build need network for that
+    # icon and fail outright on a typo.
+    - name: RSS
+      url: /blog/index.xml
+      weight: 13
+      params:
+        icon: rss
+
+  sidebar:
+    - identifier: more
+      name: More
+      params:
+        type: separator
+      weight: 1
+    - identifier: about
+      name: About
+      pageRef: /about
+      weight: 2
+
+params:
+  description: "Engineering notes, tooling write-ups and things worth writing down."
+
+  navbar:
+    displayTitle: true
+    displayLogo: false
+    width: wide
+
+  theme:
+    # light | dark | system
+    default: system
+    displayToggle: true
+
+  footer:
+    enable: true
+    # Both of the theme's own footer lines are off. "Powered by Hextra" is
+    # simply removed; the copyright is re-rendered by
+    # layouts/_partials/custom/footer.html instead, because the theme's version
+    # comes from the `copyright` i18n string, which is a static string and
+    # cannot carry the current year.
+    displayCopyright: false
+    displayPoweredBy: false
+    width: normal
+
+  displayUpdatedDate: true
+  dateFormat: "January 2, 2006"
+
+  search:
+    enable: true
+    type: flexsearch
+    flexsearch:
+      # content | summary | heading | title
+      index: content
+      # full | forward | reverse | strict
+      tokenize: forward
+
+  # Points at the SOURCE repo. The published repo holds rendered output and has
+  # no `content/` directory, so an edit link into it 404s on every page. If this
+  # repo is ever made private, set `enable: false` rather than repointing - the
+  # link would 404 again for anyone without access.
+  editURL:
+    enable: true
+    base: "https://github.com/neo7dev/neo7.dev/edit/main/content"
+
+  # Comments, via giscus (GitHub Discussions). Hosted on the PUBLISHED repo,
+  # not this one: giscus requires a public repo, and `.github.io` has to stay
+  # public for Pages to serve it. `force_orphan` rewrites that repo's history
+  # on every publish, which is harmless here - Discussions are repo-level and
+  # never touched by a ref rewrite.
+  #
+  # The "Comments" category is Announcement-format, so only maintainers and the
+  # giscus bot can open threads. With `mapping: pathname` that is a correctness
+  # property rather than tidiness: in an open category a stranger could
+  # pre-create a discussion titled with a page's pathname and have giscus adopt
+  # it as that page's comment thread. Anyone with a GitHub account can still
+  # comment and react; there is no anonymous commenting.
+  #
+  # repoId and categoryId are GitHub node IDs, generated at https://giscus.app.
+  #
+  # `enable: false` is the SITE default and deliberately stays off, because it
+  # would also switch comments on for docs pages. Blog posts opt in through the
+  # `cascade` in content/blog/_index.md - components/comments.html prefers a
+  # page's own `comments` param over this one, in either direction.
+  comments:
+    enable: false
+    type: giscus
+    giscus:
+      repo: neo7dev/neo7dev.github.io
+      # TODO: both IDs are GitHub node IDs for the PUBLISHED repo and cannot be
+      # known until it exists. Generate them at https://giscus.app once
+      # neo7dev/neo7dev.github.io is created, then flip the `comments` cascade in
+      # content/blog/_index.md back to true. Left blank rather than copied from
+      # the other site: wrong IDs point comments at a different repo's
+      # Discussions, which fails silently in the browser.
+      repoId: ""
+      category: Comments
+      categoryId: ""
+      mapping: pathname
+      strict: 0
+      reactionsEnabled: 1
+      emitMetadata: 0
+      inputPosition: bottom
+
+  # Layout widths. Three values each: full (100%), wide (90rem), normal (80rem).
+  # navbar and footer take the same scale independently of the page body.
+  page:
+    width: wide
+    tabs:
+      sync: true
+    contextMenu:
+      enable: true
+      # Hugo merges maps but REPLACES slices, so a per-language `links:` block
+      # overrides this list outright rather than adding to it. Single-language
+      # site, so that does not bite here - it would the moment a second
+      # language is added.
+      links:
+        - name: Open in ChatGPT
+          icon: chatgpt
+          description: Ask questions about this page
+          url: "https://chatgpt.com/?hints=search&q=I%27m+looking+at+this+documentation%3A+{url}%0AHelp+me+understand+how+to+use+it."
+        - name: Open in Claude
+          icon: claude
+          description: Ask questions about this page
+          url: "https://claude.ai/new?q=I%27m+looking+at+this+documentation%3A+{url}%0AHelp+me+understand+how+to+use+it."
+
+  # Google Fonts. Every family here is variable except IBM Plex Mono, which is
+  # why its `axes` lists discrete weights - a range like wght@400..600 is
+  # rejected by the Google Fonts API with a 400.
+  fonts:
+    enable: true
+    heading:
+      family: "Sora"
+      axes: "wght@100..800"
+      display: "swap"
+    body:
+      family: "Mozilla Text"
+      axes: "wght@200..700"
+      display: "swap"
+    code:
+      family: "Google Sans Code"
+      axes: "ital,wght@0,300;1,300"
+      display: "swap"
+    # Monospaced interface chrome - keyboard keys, shortcut badges, hex labels.
+    # Deliberately not `code`: those are UI, not code to read.
+    mono:
+      family: "IBM Plex Mono"
+      axes: "wght@400;500;600"
+      display: "swap"
+    fallbacks:
+      heading: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+      body: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+      code: "ui-monospace, SFMono-Regular, 'SF Mono', Consolas, 'Liberation Mono', Menlo, monospace"
+      mono: "SFMono-Regular, 'SF Mono', ui-monospace, Consolas, 'Liberation Mono', Menlo, monospace"
+
+  externalLinkDecoration: true
+
+  imageZoom:
+    enable: true
+
+  highlight:
+    copy:
+      enable: true
+      # hover | always
+      display: hover
+    # Vertical rule between line numbers and code.
+    lineNumberDivider:
+      enable: false
+
+  # Shown at the inline-start of the last-modified row. The sentence itself is
+  # the `license` i18n string, so any license works - only name and URL here.
+  license:
+    enable: true
+    name: "CC BY 4.0"
+    url: "https://creativecommons.org/licenses/by/4.0/"
+
+  displayUpdatedAuthor: false
+
+  # Right-hand table of contents. displayTags adds the post's tags as a chip
+  # cloud beneath the heading list - toc.html gates that block on this key, so
+  # without it the tags never render, on blog posts or anywhere else.
+  toc:
+    displayTags: true
+
+  # Prompt glyph used by the `command` shortcode and by a post's `coverText`.
+  command:
+    prompt: "$"
+    # Width over height of a text cover. Larger is shorter; the renderer
+    # divides it by the number of lines.
+    coverRatio: 7.2
+
+  # Every Hextra blog feature is opt-in: a block's PRESENCE under params.blog
+  # turns it on, and `enable: false` turns it back off. With only `list:` set,
+  # blog/config.html disables the rail, widgets and cards, and blog/list.html
+  # falls through to its legacy plain-<h3> branch - which does not look like
+  # the theme at all. Hence the blocks below.
+  blog:
+    list:
+      displayTags: true
+      # date | lastmod | publishDate | title | weight
+      sortBy: date
+      sortOrder: desc
+      pagerSize: 15
+      # Post cards with a cover, reading time and excerpt. Removing this block
+      # is what drops back to the plain list.
+      card:
+        enable: true
+        cover: true
+        readingTime: true
+        # Card shape, chosen independently for the two pages this list feeds:
+        # `layout` is /blog, `termLayout` is a tag term page. `vertical` puts
+        # the cover above the text and lets the card grow with its content;
+        # `horizontal` puts the cover on the inline-start 40%, keeps every
+        # card the same height from `sm` up, and hides the cover below that.
+        # These two values are what the theme rendered before the keys
+        # existed, so they are defaults made explicit rather than a change.
+        layout: vertical
+        termLayout: horizontal
+
+    article:
+      displayPagination: true
+      cover: true
+      readingTime: true
+      tags: true
+      share:
+        links:
+          - name: Bluesky
+            icon: bluesky
+            url: "https://bsky.app/intent/compose?text={title}%20{url}"
+          - name: X
+            icon: x-twitter
+            url: "https://x.com/intent/tweet?url={url}&text={title}"
+          # Mastodon is federated and has no central share endpoint, so this
+          # points at one instance's /share route. Swap the host for your own.
+          - name: Mastodon
+            icon: mastodon
+            url: "https://mastodon.social/share?text={title}%20{url}"
+          - name: LinkedIn
+            icon: linkedin
+            url: "https://www.linkedin.com/sharing/share-offsite/?url={url}"
+          - name: Facebook
+            icon: facebook
+            url: "https://www.facebook.com/sharer/sharer.php?u={url}"
+          # `reddit` is not one of the theme's bundled icons, so it comes from
+          # Simple Icons at build time - same arrangement as the coffee icon in
+          # the blog rail above. Every other icon in this list is bundled.
+          - name: Reddit
+            icon: "simple:reddit"
+            url: "https://www.reddit.com/submit?url={url}&title={title}"
+          - name: Telegram
+            icon: telegram
+            url: "https://t.me/share/url?url={url}&text={title}"
+          # No url: `type: copy` puts the permalink on the clipboard.
+          - name: Copy link
+            icon: link
+            type: copy
+      related:
+        count: 3
+      # "Part of a series" module, on every post with `series` in front matter.
+      series:
+        enable: true
+        opened: false
+
+    # Left identity rail. Links come from the `blog` menu above. `avatar` is
+    # resolved through `resources.Get`, so the path is relative to assets/ and
+    # identity.html resizes it to 160px webp at build time.
+    rail:
+      onArticle: true
+      profile:
+        avatar: images/avatar.jpg
+        name: neo7.dev
+        tagline: Engineering notes, written down while they are still fresh.
+
+    # Right rail sections, rendered in this order.
+    widgets:
+      recent:
+        count: 5
+      pinned:
+        count: 3
+      tags:
+        count: 12

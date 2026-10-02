@@ -1,0 +1,83 @@
+# Build neo7.dev and publish the rendered site to the separate
+# neo7dev/neo7dev.github.io repository.
+#
+# This repo holds only source. The built `public/` tree is force-pushed to the
+# `main` branch of the .github.io repo, whose Pages source is set to
+# "Deploy from a branch" -> main / (root). Nothing built is ever committed here.
+#
+# Auth is an SSH deploy key, not a PAT: the private half lives in this repo as
+# the DEPLOY_KEY secret, the public half is a write-enabled deploy key on the
+# target repo. A deploy key is scoped to that one repository, so a leak cannot
+# reach anything else on the account.
+name: Build and publish site
+
+on:
+  # Runs on pushes targeting the default branch
+  push:
+    branches: ["main"]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Allow only one concurrent publish, skipping runs queued between the run
+# in-progress and latest queued. Do NOT cancel in-progress runs - these are
+# production deployments and should be allowed to finish.
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    env:
+      HUGO_VERSION: 0.166.0
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0 # fetch all history for .GitInfo and .Lastmod
+          fetch-tags: true
+
+      # Hugo shells out to `go` to resolve module.imports. Without this the
+      # build fails at theme resolution, even though no Go code is compiled.
+      - name: Setup Go
+        uses: actions/setup-go@v7
+        with:
+          go-version: "1.26"
+          cache: false
+
+      - name: Setup Hugo
+        run: |
+          wget -O ${{ runner.temp }}/hugo.deb https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/hugo_extended_${HUGO_VERSION}_linux-amd64.deb \
+          && sudo dpkg -i ${{ runner.temp }}/hugo.deb
+
+      # The base URL is hardcoded rather than derived: the site is served from
+      # the apex domain via the CNAME file in static/, not from the
+      # <user>.github.io path the target repository would otherwise imply.
+      - name: Build
+        env:
+          HUGO_ENVIRONMENT: production
+          HUGO_ENV: production
+        run: hugo --gc --minify --baseURL "https://neo7.dev/"
+
+      - name: Publish to neo7dev.github.io
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          deploy_key: ${{ secrets.DEPLOY_KEY }}
+          external_repository: neo7dev/neo7dev.github.io
+          publish_branch: main
+          publish_dir: ./public
+          # Pages would otherwise run the output through Jekyll, which strips
+          # paths beginning with an underscore. The action writes .nojekyll.
+          enable_jekyll: false
+          force_orphan: true # keep the published repo at a single commit
+          user_name: "github-actions[bot]"
+          user_email: "41898282+github-actions[bot]@users.noreply.github.com"
+          commit_message: "Publish site from ${{ github.sha }}"

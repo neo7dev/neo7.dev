@@ -1,0 +1,22 @@
+# Defaults for local GitHub Actions runs with `act`.
+#
+# Note: `act -ln` lists jobs and is safe. The workflow is a single `publish`
+# job whose last step force-pushes to neo7dev.github.io, so a full
+# `act push` is a real deployment, not a rehearsal. To exercise the build
+# alone, drop that step or run `hugo --gc --minify` directly.
+
+# The default act image is too minimal for this workflow (no node, sparse
+# apt); catthehacker's image mirrors the ubuntu-latest runner closely enough.
+-P ubuntu-latest=catthehacker/ubuntu:act-latest
+
+# On Apple Silicon several toolchains misbehave under arm64 containers;
+# amd64 via Rosetta is act's recommended setting.
+--container-architecture linux/amd64
+
+# Keep job containers between runs so the Hugo .deb download survives and
+# repeat runs are fast. Drop state with `docker rm` of the act-* containers.
+--reuse
+
+# Local stand-in for GitHub's artifact API, so actions/upload-pages-artifact
+# succeeds instead of failing on ACTIONS_RUNTIME_TOKEN.
+--artifact-server-path /tmp/act-artifacts

@@ -1,0 +1,88 @@
+# Build gate for everything that is not main.
+#
+# Proves a branch compiles before it can be merged. Publishing lives in
+# pages.yml and is triggered only by a push to main, so nothing here can reach
+# the live site - this workflow builds and throws the output away.
+#
+# The job name below ("Build site") is what a branch ruleset must list as a
+# required status check. Renaming the job silently detaches the requirement.
+name: Build check
+
+on:
+  # The gate itself. Runs against the merge result, not the branch tip, so a
+  # branch that builds alone but breaks against current main still fails here.
+  pull_request:
+    branches: ["main"]
+
+  # Early feedback before a PR exists. main is excluded because a push there is
+  # a publish, and pages.yml already builds it - running both would double the
+  # work and report two different checks for one commit.
+  push:
+    branches-ignore: ["main"]
+
+permissions:
+  contents: read
+
+# Supersede in-flight runs for the same ref: a force-push or a quick follow-up
+# commit makes the earlier build irrelevant. Safe to cancel here, unlike the
+# publish workflow, because nothing is deployed.
+concurrency:
+  group: "build-check-${{ github.ref }}"
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  build:
+    name: Build site
+    runs-on: ubuntu-latest
+    env:
+      HUGO_VERSION: 0.166.0
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0 # enableGitInfo reads commit history for .Lastmod
+          fetch-tags: true
+
+      # Hugo shells out to `go` to resolve module.imports. Without this the
+      # build fails at theme resolution, even though no Go code is compiled.
+      - name: Setup Go
+        uses: actions/setup-go@v7
+        with:
+          go-version: "1.26"
+          cache: false
+
+      - name: Setup Hugo
+        run: |
+          wget -O ${{ runner.temp }}/hugo.deb https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/hugo_extended_${HUGO_VERSION}_linux-amd64.deb \
+          && sudo dpkg -i ${{ runner.temp }}/hugo.deb
+
+      # Assets reach the site close to verbatim - static/ byte for byte, and
+      # assets/ as the original file alongside Hugo's derivatives - so the
+      # metadata an image or PDF was exported with is published with it. The
+      # publish workflow never runs make, so this cannot be a build step and
+      # still protect the live site; it protects it by being part of the
+      # required check. See the Assets section of the Makefile.
+      - name: Asset metadata and leak scan
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq libimage-exiftool-perl
+          make check-assets
+
+      # Same flags and base URL as the publish build, so a branch that passes
+      # here cannot fail differently once merged.
+      - name: Build
+        env:
+          HUGO_ENVIRONMENT: production
+          HUGO_ENV: production
+        run: hugo --gc --minify --baseURL "https://neo7.dev/"
+
+      # A Hugo build succeeds with zero pages, which would sail through the
+      # check while publishing an empty site. Assert the homepage exists.
+      - name: Verify output
+        run: |
+          test -f public/index.html || { echo "::error::build produced no public/index.html"; exit 1; }
+          echo "pages built: $(find public -name '*.html' | wc -l)"

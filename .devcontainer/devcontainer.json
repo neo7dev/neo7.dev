@@ -1,0 +1,138 @@
+{
+  "name": "neo7.dev - site",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "dev",
+  "workspaceFolder": "/workspaces/neo7.dev",
+
+  // SSH: git over SSH inside the container needs two separate things, and only
+  // one of them is configuration.
+  //
+  // 1. Signing. VS Code forwards the host ssh-agent automatically - it starts a
+  //    helper in the container, creates a fresh socket there, proxies the agent
+  //    protocol back to the host and sets SSH_AUTH_SOCK. Nothing to declare.
+  //    Private keys stay on the host.
+  //
+  // 2. Choosing WHICH key. A forwarded agent offers every key it holds, in
+  //    agent order, and GitHub accepts the first one that maps to an account,
+  //    then stops - so a host with more than one GitHub key authenticates as
+  //    whichever it happened to offer first. This repo is owned by a different
+  //    GitHub account than the host's default, so that is the wrong one.
+  //    ssh's only selection mechanism is IdentityFile + IdentitiesOnly
+  //    (ssh_config(5)); there is no way to pick by fingerprint or comment.
+  //
+  //    That selection is declared, not inherited. `ssh-config` in this
+  //    directory is symlinked to ~/.ssh/config by postCreateCommand and names
+  //    one identity, `id_container`, which docker-compose.yml binds to one
+  //    host key. The host's own ~/.ssh is not mounted: reading it is what
+  //    dragged every other identity in, and which key a container uses is a
+  //    property of the container rather than of the machine it runs on.
+  //
+  // The mounts are declared in docker-compose.yml, NOT here. For compose-based
+  // containers the devcontainers CLI parses a mount string into a Mount object
+  // and re-emits it via convertMountToVolume(), which builds `${source}:
+  // ${target}` and nothing else - the Mount interface has no readonly field, so
+  // the flag is gone before the volume string is built, with no warning. Long
+  // syntax in docker-compose.yml supports read_only: true and keeps it, which
+  // matters here: the mounted file is a real host private key.
+  //
+  // `IgnoreUnknown UseKeychain` on the host is no longer a requirement. That
+  // was needed because Linux OpenSSH aborts the entire file on the macOS-only
+  // `UseKeychain` keyword, and the container used to parse the host's config.
+  // It no longer reads it.
+  //
+  // No Docker and no act. Nothing in this repo builds or runs containers, and
+  // mounting the host docker socket would be root-equivalent access to the host
+  // daemon for no gain. `act` stays a host-side tool - .actrc configures it, and
+  // `act -ln` needs no daemon to syntax-check pages.yml.
+  "features": {
+    "ghcr.io/devcontainers/features/hugo:1": {
+      "extended": true,
+      "version": "0.166.0"
+    },
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "24"
+    },
+    // Present in the base image already; declared so the container's toolchain
+    // is stated rather than inherited.
+    "ghcr.io/devcontainers/features/git:1": {},
+    // GitHub CLI, authenticated as whoever owns the token in GH_TOKEN (see the
+    // environment block in docker-compose.yml). Needed because git over SSH and
+    // the GitHub API authenticate separately: the forwarded agent covers pushes,
+    // but `gh repo create` is a REST call and needs a token of its own.
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "mhutchie.git-graph",
+        "esbenp.prettier-vscode",
+        "tamasfe.even-better-toml",
+        "budparr.language-hugo-vscode",
+        "bradlc.vscode-tailwindcss",
+        "austenc.tailwind-docs",
+        "kamikillerto.vscode-colorize",
+        "ecmel.vscode-html-css",
+        "ms-vscode.makefile-tools",
+        "github.vscode-github-actions"
+      ]
+    }
+  },
+  // The ~/.ssh chown comes first and is NOT recursive: Docker creates that
+  // named volume root-owned, so ssh cannot write known_hosts and re-asks to
+  // trust github.com on every connection - while the key mounted inside it is
+  // read-only, which a recursive chown would fail on.
+  //
+  // ~/.ssh/config is a symlink to `.devcontainer/ssh-config` rather than a
+  // mount of its own. The file is in the repository and the repository is
+  // already mounted, so a second bind of the same file would be the same bytes
+  // twice; the symlink also means an edit applies on the next connection
+  // instead of on the next rebuild. ssh resolves the link before its
+  // permission check, and the target arrives through the bind as vscode-owned
+  // and not group-writable, which is what that check wants.
+  //
+  // The node_modules named volume (docker-compose.yml) is created empty and
+  // root-owned, because nothing exists at that path in the image for Docker to
+  // seed ownership from. Claim it for the container user before installing,
+  // otherwise npm fails with EACCES on the first mkdir.
+  //
+  // npm is here for prettier only: the theme ships its CSS already compiled,
+  // so this site never runs tailwind or postcss.
+  //
+  // exiftool is the one package the image does not already carry. The Assets
+  // targets in the Makefile read and rewrite image metadata with it, and
+  // build-check.yml runs `make check-assets` as part of the required check -
+  // so without it those targets are unusable from inside the container while
+  // still being able to fail a pull request. It goes before the npm install
+  // rather than after it: chained on the end, a flaky `npm install` would
+  // leave the container without the one tool needed to run the check that is
+  // about to fail the contributor's pull request.
+  "postCreateCommand": "sudo chown \"$(id -u):$(id -g)\" /home/vscode/.ssh && sudo chmod 700 /home/vscode/.ssh && ln -sfn \"${containerWorkspaceFolder}/.devcontainer/ssh-config\" /home/vscode/.ssh/config && sudo apt-get update -qq && sudo apt-get install -y -qq libimage-exiftool-perl && sudo chown -R \"$(id -u):$(id -g)\" node_modules && npm install",
+  // Docker Desktop's VirtioFS periodically serves uid 0 for the *root inode* of
+  // a bind mount - measured in the sibling hextra container at ~11% of reads.
+  // Children are never affected, because they are looked up from their parent,
+  // while the mount root has no parent and is answered from a separate code
+  // path.
+  //
+  // Git checks the ownership of the worktree, which here is the mount root, so
+  // that fraction of git calls abort with "detected dubious ownership".
+  // hugo.yaml sets enableGitInfo, so `hugo server` makes hundreds of git calls
+  // per build and reliably loses that lottery; the Source Control panel goes
+  // blank for the same reason.
+  //
+  // This does not repair the ownership - nothing can, the value is fabricated
+  // per-read and is not stored anywhere - it tells git to stop consulting it.
+  // See docker/for-mac#6298 and #6243, both open.
+  //
+  // postStart, not postCreate: the value is wrong intermittently for the life
+  // of the container, so this has to be in place on every start, not just the
+  // first. Guarded so repeated starts do not append duplicate entries.
+  //
+  // Belt and braces: docker-compose.yml also injects the same setting through
+  // GIT_CONFIG_COUNT/KEY/VALUE, which is what actually prevents the VS Code
+  // Git extension from reporting the repository as unsafe. This command runs
+  // as the window opens and can lose that race; environment cannot.
+  "postStartCommand": "git config --global --get-all safe.directory 2>/dev/null | grep -qxF \"${containerWorkspaceFolder}\" || git config --global --add safe.directory \"${containerWorkspaceFolder}\"",
+  // Hugo serves on 8043 (`make dev`). Nothing runs on 1313 and it is not
+  // forwarded - one site, one port.
+  "forwardPorts": [8043]
+}

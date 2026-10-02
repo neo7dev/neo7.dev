@@ -1,0 +1,26 @@
+# ssh configuration for the dev container. Symlinked to ~/.ssh/config by
+# devcontainer.json's postCreateCommand; the host's own ~/.ssh/config is not
+# mounted at all, which is the point.
+#
+# The container has exactly one GitHub identity. `id_container` is whichever
+# host key docker-compose.yml binds to that path - `${NEO7DEV_SSH_KEY}`,
+# default `neo7_github` - so nothing here names a key, a path on the host,
+# or an account. The sibling hextra checkout carries this same file pointing at
+# the same key through its own variable.
+#
+# Both spellings resolve to the same identity on purpose. `origin` uses the
+# `github.com-neo7` alias so that the host, which keeps its own multi-key
+# config, still selects the right key for the same URL; and a bare
+# `ssh -T git@github.com` inside the container answers as the same account
+# rather than as whatever the host's default key happens to be.
+#
+# `IdentitiesOnly yes` is what makes this exclusive. `IdentityFile` alone is a
+# preference: the forwarded agent still offers every key it holds and GitHub
+# accepts the first that maps to an account. It does not bypass the agent -
+# signing still happens there, which is what unlocks a passphrase-protected
+# key - it just narrows the offer to this one identity.
+Host github.com github.com-neo7
+  HostName github.com
+  User git
+  IdentityFile ~/.ssh/id_container
+  IdentitiesOnly yes

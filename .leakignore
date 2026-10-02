@@ -1,0 +1,7 @@
+# Accepted hits from `make check-leaks`, one extended regex per line.
+#
+# The scan extracts the offending token and prefixes it with its line number,
+# so a pattern here matches against `NN:token` rather than the whole line.
+# Record why an exception is here. Widening LEAK_PATTERNS in the Makefile
+# instead would hide the next one that looks the same.
+

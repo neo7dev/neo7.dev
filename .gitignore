@@ -1,0 +1,14 @@
+public/
+resources/
+
+.hugo_build.lock
+
+node_modules/
+
+.DS_Store
+.codegraph/
+
+# `hugo mod vendor` output. Kept out of the repo so the theme stays resolved
+# from go.mod: a committed _vendor/ silently pins it and makes `hugo mod get -u`
+# a no-op. CI resolves the module itself via the Setup Go step.
+_vendor/

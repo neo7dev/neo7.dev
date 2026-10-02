@@ -1,0 +1,7 @@
+# Build output and dependencies
+public/
+resources/
+node_modules/
+
+# Generated
+go.sum

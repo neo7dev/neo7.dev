@@ -1,0 +1,16 @@
+{
+  "private": true,
+  "scripts": {
+    "dev": "hugo server --disableFastRender -D -F --port 8043 --bind 0.0.0.0",
+    "preview": "make preview",
+    "build": "hugo --gc --minify",
+    "prod": "make prod",
+    "format": "npx prettier --write .",
+    "build:clean": "make build CLEAN=1",
+    "prod:clean": "make prod CLEAN=1"
+  },
+  "devDependencies": {
+    "prettier": "^3.8.3",
+    "prettier-plugin-go-template": "^0.0.15"
+  }
+}

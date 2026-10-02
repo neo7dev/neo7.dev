@@ -1,0 +1,26 @@
+{{- /* Site footer line.
+
+  Rendered here rather than through the theme's own copyright block because that
+  block prints the `copyright` i18n string verbatim — a fixed string, so the year
+  in it goes stale and has to be bumped by hand every January. `now.Year` is
+  evaluated at build time, and the site rebuilds on every push, so it is correct
+  without anyone remembering to change it.
+
+  Both `footer.displayCopyright` and `footer.displayPoweredBy` are false in
+  hugo.yaml, so the theme's section is skipped entirely and this is the only
+  footer line. The wrapper reproduces the spacing and alignment of the block it
+  replaces (centred on mobile, inline-start from md up).
+
+  This is the theme's documented extension point and ships empty, so overriding
+  it does not fork any theme markup.
+*/ -}}
+<div class="hx:flex hx:justify-center hx:py-12 hx:md:justify-start">
+  <div class="hx:text-xs">
+    &copy; {{ now.Year }}
+    <a
+      href="https://neo7.dev"
+      class="hx:underline hx:underline-offset-2 hx:decoration-from-font hx:hover:text-neutral-900 hx:dark:hover:text-neutral-100"
+      >neo7.dev</a
+    >
+  </div>
+</div>

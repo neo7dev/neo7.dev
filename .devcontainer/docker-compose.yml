@@ -1,0 +1,152 @@
+# Dev environment for the neo7.dev site.
+#
+#   dev  the workspace container the editor attaches to
+#
+# One service, one server. Hugo itself serves on 8043 (`make dev`), so there is
+# no second static file server and no public/ bind mount to keep in sync.
+
+# Compose project name. Without it the project is named after this file's
+# directory, giving containers like `devcontainer-dev-1`.
+name: neo7dev
+
+services:
+  dev:
+    image: mcr.microsoft.com/devcontainers/go:1
+    # Run the container itself as vscode, not root. The image ships with
+    # USER root so features can install packages at build time, and its
+    # metadata sets `remoteUser: vscode` - but that only covers VS Code Server,
+    # terminals and postCreateCommand, leaving the container process as root.
+    # `containerUser` is ignored for compose-based dev containers, so the user
+    # has to be set here. Build-time steps are unaffected; this is runtime only.
+    user: vscode
+    environment:
+      # GitHub API token for `gh`, taken from NEO7DEV_GH_TOKEN on the
+      # host and renamed on the way in. The rename is the point: `gh` prefers
+      # GH_TOKEN over its own stored credentials, so exporting GH_TOKEN on the
+      # host would silently re-authenticate every host terminal as this
+      # account. Under a different name the host keyring is untouched and only
+      # the container sees GH_TOKEN.
+      #
+      # This matters more than usual here: the host `gh` is authenticated as a
+      # different GitHub account than the one that owns this repo.
+      #
+      # Where the host gets the value from is the host's business, not this
+      # file's: it is exported from ~/.zshrc, gated so only VS Code's resolved
+      # environment holds it. Spelling the keychain lookup out here too only
+      # created a second copy to drift, which it did.
+      #
+      # Deliberately its own token, not the sibling hextra checkout's: each is
+      # a fine-grained PAT scoped to a single repository, so neither container
+      # can act on the other's repo. No fallback to HEXTRA_GH_TOKEN for the
+      # same reason - silently borrowing it would both defeat the scoping and
+      # hide a missing export.
+      #
+      # VS Code resolves .zshrc in a spawned shell at startup, so this reaches
+      # the container however VS Code was launched - Dock and Spotlight
+      # included, not just `code .` from a terminal. Nothing is written to
+      # disk: no .env, and unlike containerEnv no plaintext copy lands in the
+      # generated compose override under globalStorage.
+      #
+      # The `:-` default keeps compose quiet when the variable is unset; `gh` is
+      # simply unauthenticated then.
+      - GH_TOKEN=${NEO7DEV_GH_TOKEN:-}
+      # Container images default to UTC, which puts every timestamp the
+      # container writes - `hugo new` front matter dates, git author times,
+      # build logs - hours away from the host's. HOST_TZ comes from the same
+      # guarded block in ~/.zshrc as the token above, derived there from the
+      # host's /etc/localtime. The image already carries /usr/share/zoneinfo,
+      # so a zone name resolves without installing tzdata.
+      #
+      # Unlike the token, this is shared with the sibling hextra checkout
+      # rather than named per repository: it is not a credential, so there is
+      # nothing to scope.
+      #
+      # TZ is read at process start, so changing it needs a container rebuild,
+      # not a Reload Window.
+      - TZ=${HOST_TZ:-Etc/UTC}
+      # safe.directory for the workspace, injected as environment rather than
+      # written by a lifecycle command. devcontainer.json's postStartCommand
+      # sets the same value, but it races the VS Code Git extension, which
+      # checks the repository as the window opens and reports "the folder is
+      # owned by someone other than the current user" if it gets there first.
+      # Environment is present from PID 1, so there is no window to lose.
+      #
+      # GIT_CONFIG_COUNT/KEY/VALUE is git's own mechanism for passing config
+      # through the environment (git-config(1), ENVIRONMENT); it adds to the
+      # configured values rather than replacing them, so the postStartCommand
+      # entry remains harmless.
+      #
+      # Why the setting is needed at all: Docker Desktop's VirtioFS
+      # intermittently serves uid 0 for the ROOT INODE of a bind mount - the
+      # mount root has no parent to be looked up from and is answered by a
+      # separate code path, so children are never affected. Git checks the
+      # ownership of the worktree, which here is that mount root. Nothing can
+      # repair the value; it is fabricated per read. See docker/for-mac#6298.
+      - GIT_CONFIG_COUNT=1
+      - GIT_CONFIG_KEY_0=safe.directory
+      - GIT_CONFIG_VALUE_0=/workspaces/neo7.dev
+    volumes:
+      - ..:/workspaces/neo7.dev:cached
+      # Named volume masks node_modules so the container keeps its own
+      # Linux-native binaries instead of sharing the host's Darwin ones
+      # through the bind mount.
+      - node_modules:/workspaces/neo7.dev/node_modules
+      # One GitHub identity, declared rather than inherited.
+      #
+      # The host's whole ~/.ssh used to be mounted over /home/vscode/.ssh so the
+      # container could read the host's config. That brings every identity with
+      # it: the forwarded agent offers all of them, the host's catch-all block
+      # names the default key, and a bare `git@github.com` authenticated as
+      # whichever account GitHub matched first. Which key a container uses is
+      # not something to inherit - it is a property of the container.
+      #
+      # So: the key and its public half only, bound to a fixed path,
+      # `id_container` - so the choice of key lives here, in one variable, and
+      # another repository copies the same two entries pointing at a different
+      # one. The config that names that path is `.devcontainer/ssh-config`,
+      # which needs no mount of its own: it is in the repository, the
+      # repository is already mounted, and postCreateCommand symlinks
+      # ~/.ssh/config to it. Editing it takes effect on the next connection,
+      # with no rebuild.
+      #
+      # ~/.ssh itself stays a container-owned directory, which is what lets ssh
+      # write known_hosts; under the old read-only directory mount it could not.
+      #
+      # The key is never unlocked here. It is passphrase-protected and the
+      # passphrase is in the macOS Keychain; VS Code forwards the host ssh-agent
+      # and the agent signs. `IdentitiesOnly` in ssh-config narrows what the
+      # agent is asked to offer, it does not bypass it - so `docker exec`, which
+      # gets no forwarded agent, still cannot push.
+      #
+      # `IgnoreUnknown UseKeychain` on the host is no longer a requirement: the
+      # macOS-only keywords that Linux OpenSSH aborts on are in the host's
+      # config, which this container no longer reads.
+      #
+      # Long syntax, not a string: the compose path through the devcontainers
+      # CLI re-emits mounts via convertMountToVolume(), whose Mount interface
+      # has no readonly field, so `readonly` in a mount STRING is silently
+      # dropped. read_only here survives.
+      #
+      # ~/.ssh is a named volume so known_hosts outlives a rebuild. Docker
+      # creates the directory root-owned either way - it does not exist in the
+      # image - so postCreateCommand chowns it; without that ssh cannot write
+      # known_hosts and every single connection re-asks to trust github.com.
+      - ssh_home:/home/vscode/.ssh
+      - type: bind
+        source: ${HOME}/.ssh/${NEO7DEV_SSH_KEY:-neo7_github}
+        target: /home/vscode/.ssh/id_container
+        read_only: true
+      - type: bind
+        source: ${HOME}/.ssh/${NEO7DEV_SSH_KEY:-neo7_github}.pub
+        target: /home/vscode/.ssh/id_container.pub
+        read_only: true
+    # Keep the container alive; the dev container attaches to it.
+    command: sleep infinity
+
+volumes:
+  # Per-container node_modules; the host keeps its own copy on disk.
+  node_modules:
+  # ~/.ssh, so known_hosts persists. The key is bind-mounted read-only on top
+  # of it and the config is a symlink into the repository; only known_hosts is
+  # ever written here.
+  ssh_home:
