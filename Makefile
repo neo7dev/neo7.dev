@@ -581,14 +581,23 @@ git-auth: ## Check git identity and that origin is reachable for pushing
 	   printf "  %-14s %s\n" "" "VS Code forwards it to terminals it opens; a plain"; \
 	   printf "  %-14s %s\n" "" "'docker exec' does not - push from a VS Code terminal"; \
 	 fi
-	@if git ls-remote --exit-code --heads origin >/dev/null 2>&1; then \
-	   printf "  %-14s $(GREEN)%s$(RESET)\n" "push access" "origin reachable"; \
-	   $(OK) "git can push to origin"; \
-	 else \
+# Reachability and emptiness are separate questions. `ls-remote --exit-code` exits 2
+# when no refs MATCH, so on a repository that exists but has no commits yet it is
+# indistinguishable from an auth failure - which reported "origin unreachable" on a
+# correctly configured new repo, sending you to debug an agent that was fine.
+	@refs=$$(git ls-remote --heads origin 2>/dev/null); rc=$$?; \
+	 if [ $$rc -ne 0 ]; then \
 	   printf "  %-14s $(RED)%s$(RESET)\n" "push access" "origin unreachable"; \
 	   $(WARN) "the host keys are mounted read-only and the agent does the signing"; \
 	   $(WARN) "so this usually means the agent is missing rather than a bad key"; \
+	   $(WARN) "check in a VS Code terminal: ssh-add -l"; \
 	   exit 1; \
+	 elif [ -z "$$refs" ]; then \
+	   printf "  %-14s $(GREEN)%s$(RESET)\n" "push access" "origin reachable (no branches yet)"; \
+	   $(OK) "git can reach origin; it has no commits, so nothing to compare against"; \
+	 else \
+	   printf "  %-14s $(GREEN)%s$(RESET)\n" "push access" "origin reachable"; \
+	   $(OK) "git can push to origin"; \
 	 fi
 
 .PHONY: pr
