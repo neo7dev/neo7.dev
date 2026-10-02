@@ -254,10 +254,39 @@ new-page: ## Create a bare page from archetypes/default.md: make new-page NAME=s
 .PHONY: build
 build: ## Write public/ (add CLEAN=1 to prune files this build did not produce)
 	hugo --gc --minify $(CLEAN_DEST)
+	@$(MAKE) --no-print-directory check-unpublished
 
 .PHONY: prod
 prod: ## Write public/ as CI does, at $(BASE_URL) (add CLEAN=1 to prune)
 	hugo --gc --minify $(CLEAN_DEST) --baseURL "$(BASE_URL)"
+	@$(MAKE) --no-print-directory check-unpublished
+
+.PHONY: check-unpublished
+# Asserts what config/production/hugo.yaml is supposed to guarantee, rather than
+# trusting it. The exclusion is config, and config gets edited by someone who does
+# not know what it is for - while a published internal note cannot be unpublished,
+# because the output repo is public and git history is forever.
+#
+# Greps the whole tree rather than only looking for public/internal/: a page can
+# reach the flexsearch index, llms.txt or a feed without having a directory.
+check-unpublished: ## Fail if anything from content/internal/ reached public/
+	@$(SAY) "Checking nothing internal was published"
+	@if [ ! -d public ]; then $(WARN) "no public/ yet - build first"; exit 0; fi
+	@bad=0; \
+	 if [ -e public/internal ]; then $(ERR) "public/internal/ exists"; bad=1; fi; \
+	 for f in content/internal/*.md; do \
+	   [ -e "$$f" ] || continue; \
+	   case "$$f" in */_index.md) continue ;; esac; \
+	   slug="$$(basename "$$f" .md)"; \
+	   if grep -rqF "/internal/$$slug" public/ 2>/dev/null; then \
+	     $(ERR) "$$slug is referenced somewhere in public/"; bad=1; \
+	   fi; \
+	 done; \
+	 if [ $$bad -ne 0 ]; then \
+	   $(WARN) "config/production/hugo.yaml must drop internal/** from the content mount"; \
+	   exit 1; \
+	 fi; \
+	 $(OK) "no internal content in public/"
 
 .PHONY: clean
 clean: ## Remove build output

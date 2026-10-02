@@ -79,6 +79,12 @@ jobs:
           HUGO_ENVIRONMENT: production
           HUGO_ENV: production
         run: hugo --gc --minify --baseURL "https://neo7.dev/"
+      # content/internal/ is dropped from the content mount in
+      # config/production/hugo.yaml. Asserted rather than trusted: a published
+      # internal note cannot be unpublished, because the output repo is public
+      # and its history is permanent.
+      - name: Check nothing internal was published
+        run: make check-unpublished
 
       # A Hugo build succeeds with zero pages, which would sail through the
       # check while publishing an empty site. Assert the homepage exists.

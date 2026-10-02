@@ -1,0 +1,13 @@
+# Development-only overrides, merged over the root hugo.yaml.
+#
+# The navbar entry for the internal section lives here so it cannot appear in a
+# published build, where the section does not exist and the link would 404.
+#
+# Hugo replaces slices when merging config, but menus are an exception: they merge
+# by identifier, so this adds one item and leaves Docs, Blog and About alone.
+menu:
+  main:
+    - identifier: internal
+      name: Internal
+      pageRef: /internal
+      weight: 5

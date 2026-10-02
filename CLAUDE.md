@@ -38,7 +38,7 @@ deletion, and a PR whose "Build site" check has passed. That check name is the
 `name:` of the job in build-check.yml - renaming the job detaches the
 requirement without any error, so change both together or neither.
 
-On a pull request the check builds the *merge result*, not the branch tip, so a
+On a pull request the check builds the _merge result_, not the branch tip, so a
 branch that builds alone but conflicts semantically with current `main` still
 fails.
 
@@ -48,9 +48,9 @@ Do not push to `main` without being asked. "Commit this" is not "publish this".
 
 Two repositories:
 
-| Repository | Holds | Branch |
-| --- | --- | --- |
-| `neo7dev/neo7.dev` | source (this repo) | `main` |
+| Repository                  | Holds                | Branch |
+| --------------------------- | -------------------- | ------ |
+| `neo7dev/neo7.dev`          | source (this repo)   | `main` |
 | `neo7dev/neo7dev.github.io` | rendered output only | `main` |
 
 A push to `main` here runs `.github/workflows/pages.yml`, which builds with Hugo
@@ -151,6 +151,31 @@ there is a real cover image.
 `enableGitInfo: true` means `.Lastmod` comes from the last commit touching the
 file, not from front matter. Do not add a `lastmod` key to work around a date
 looking wrong — commit properly instead.
+
+### content/internal/ is never published
+
+A third section alongside `docs/` and `blog/`, blog-shaped via `cascade: type: blog`,
+for notes worth keeping and not publishing: setup records, runbooks, anything
+naming real hosts or paths.
+
+`config/production/hugo.yaml` drops `internal/**` from the content mount, so a
+production build does not read those files at all — nothing can reach the rendered
+output, the flexsearch index, `llms.txt`, the feeds or the sitemap. This is why it
+is a mount exclusion rather than `draft: true`: `--buildDrafts` publishes a draft,
+while no flag publishes an unmounted file.
+
+`hugo server` defaults to the development environment and `hugo` to production, so
+`make dev` shows the section and `make prod`, `make preview` and CI cannot. The
+navbar entry lives in `config/development/hugo.yaml` for the same reason; menus
+merge by identifier, so it adds one item without restating the others.
+
+`make check-unpublished` asserts it, and runs from `build`, `prod`, the PR gate and
+— before the publish step — `pages.yml`. Do not take it out to make a build pass:
+a published internal note cannot be unpublished, because the output repo is public
+and its history is permanent.
+
+Put a new internal note in `content/internal/`. Nothing else is needed; the
+cascade gives it blog front matter semantics.
 
 ## The Hextra skill
 
@@ -258,7 +283,7 @@ Compose-based, in `.devcontainer/`. Two things it does that are easy to break:
   by `postCreateCommand`. The forwarded agent still does the signing; this only
   narrows which identity is offered, and mounting the whole of `~/.ssh` is what
   dragged every other one in. `~/.ssh` itself is a named volume so
-  `known_hosts` survives a rebuild. Long syntax, not a mount *string*: a
+  `known_hosts` survives a rebuild. Long syntax, not a mount _string_: a
   string's `readonly` flag is silently dropped on the compose code path, and
   these are real private keys. The host no longer needs
   `IgnoreUnknown UseKeychain` — its config is never parsed here.
@@ -318,6 +343,7 @@ without revealing the value.
 When the user's request matches an available skill, invoke it via the Skill tool. When in doubt, invoke the skill.
 
 Key routing rules:
+
 - Product ideas/brainstorming → invoke /office-hours
 - Strategy/scope → invoke /plan-ceo-review
 - Architecture → invoke /plan-eng-review

@@ -1,0 +1,14 @@
+# Production-only overrides, merged over the root hugo.yaml. `hugo` defaults to
+# this environment; `hugo server` defaults to development.
+#
+# Dropping internal/** from the content mount is stronger than `draft: true` or
+# `_build.render: never`: Hugo never reads the files, so nothing can reach the
+# rendered output, the flexsearch index, llms.txt, the feeds or the sitemap. There
+# is also no flag that re-enables it by accident - `--buildDrafts` publishes a
+# draft, but nothing publishes an unmounted file.
+module:
+  mounts:
+    - source: content
+      target: content
+      excludeFiles:
+        - "internal/**"
