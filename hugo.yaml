@@ -180,12 +180,13 @@ params:
       # full | forward | reverse | strict
       tokenize: forward
 
-  # Points at the SOURCE repo. The published repo holds rendered output and has
-  # no `content/` directory, so an edit link into it 404s on every page. If this
-  # repo is ever made private, set `enable: false` rather than repointing - the
-  # link would 404 again for anyone without access.
+  # Off: the source repo is private, so an "Edit this page" link into it 404s for
+  # every visitor. Repointing it at the published repo is not the fix either - that
+  # one holds rendered output and has no `content/` directory, so it 404s for
+  # everyone instead of only for outsiders. `base` is kept so re-enabling is one
+  # line if the repo ever goes public.
   editURL:
-    enable: true
+    enable: false
     base: "https://github.com/neo7dev/neo7.dev/edit/main/content"
 
   # Comments, via giscus (GitHub Discussions). Hosted on the PUBLISHED repo,
