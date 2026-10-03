@@ -157,6 +157,12 @@ Blog front matter follows `content/blog/welcome.md`: `title`, `date`,
 `authors`, optional `series` and `tags`, and `coverText` as a stand-in until
 there is a real cover image.
 
+**`date` carries a time and an offset**, not a bare day:
+`date: 2026-10-03T18:38:00+05:30`. The blog list sorts by date descending, so two
+posts dated the same day tie and Hugo breaks the tie on something arbitrary — the
+list order then looks random and changes when a file is renamed. A timestamp makes
+it deterministic. Posts written in one sitting still need distinct times.
+
 `enableGitInfo: true` means `.Lastmod` comes from the last commit touching the
 file, not from front matter. Do not add a `lastmod` key to work around a date
 looking wrong — commit properly instead.

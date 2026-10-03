@@ -1,6 +1,6 @@
 ---
 title: "Setting Up This Site"
-date: 2026-10-02
+date: 2026-10-02T17:30:00+05:30
 draft: true
 authors:
   - name: neo7.dev

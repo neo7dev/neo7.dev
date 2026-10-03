@@ -1,6 +1,6 @@
 ---
 title: "Keeping a password vault off the rest of the network"
-date: 2026-10-03
+date: 2026-10-03T18:25:00+05:30
 authors:
   - name: neo7.dev
 tags:

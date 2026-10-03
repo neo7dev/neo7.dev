@@ -1,6 +1,6 @@
 ---
 title: "Confining a container with AppArmor"
-date: 2026-10-03
+date: 2026-10-03T17:55:00+05:30
 authors:
   - name: neo7.dev
 tags:

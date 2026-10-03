@@ -1,6 +1,6 @@
 ---
 title: "Encrypting a disk with LUKS, and unlocking it on boot"
-date: 2026-10-03
+date: 2026-10-03T21:20:00+05:30
 authors:
   - name: neo7.dev
 tags:

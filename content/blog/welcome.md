@@ -1,6 +1,6 @@
 ---
 title: "Welcome"
-date: 2026-10-01
+date: 2026-10-01T10:00:00+05:30
 authors:
   - name: neo7.dev
 tags:

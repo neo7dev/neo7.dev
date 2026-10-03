@@ -1,6 +1,6 @@
 ---
 title: "Fine-tuning a voice with Coqui TTS"
-date: 2026-10-03
+date: 2026-10-03T18:10:00+05:30
 authors:
   - name: neo7.dev
 tags:

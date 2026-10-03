@@ -1,6 +1,6 @@
 ---
 title: "Four places macOS hides a keyboard shortcut"
-date: 2026-10-03
+date: 2026-10-03T17:40:00+05:30
 authors:
   - name: neo7.dev
 tags:
