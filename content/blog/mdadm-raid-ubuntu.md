@@ -243,16 +243,44 @@ rescue console.
 
 ### Save the array config and rebuild the initramfs
 
+The package installs `/etc/mdadm/mdadm.conf` with defaults only — a `DEVICE` line,
+`HOMEHOST`, `MAILADDR`. Creating an array does not add anything to it; `mdadm
+--create` writes superblocks on the disks and nothing else. The `ARRAY` lines are
+yours to add, and there are two ways.
+
+Append just the array definitions:
+
 ```shell
 mdadm --detail --scan | tee -a /etc/mdadm/mdadm.conf
+```
+
+Or regenerate the whole file, preamble included:
+
+```shell
+/usr/share/mdadm/mkconf > /etc/mdadm/mdadm.conf
+```
+
+`dpkg-reconfigure mdadm` runs the same generator and rebuilds the initramfs after it.
+
+{{< callout type="info" >}}
+`--detail --scan` **appends**, so running it a second time leaves duplicate `ARRAY`
+lines. `mkconf` rewrites the file from the arrays that exist right now, which makes
+it the safer one to reach for when you are adding a second array later.
+{{< /callout >}}
+
+Then rebuild the initramfs so early boot sees the same config:
+
+```shell
 update-initramfs -u
 ```
 
 {{< callout type="warning" >}}
-Skip `update-initramfs -u` and the array assembles under a generated name like
-`/dev/md127`, because the initramfs is still carrying the old config. The fstab
-entry then points at a device that does not exist. This is the single most common
-way an mdadm setup "breaks" on first reboot.
+An array assembles even with no config at all — udev runs `mdadm --incremental`,
+reads the superblocks and builds it. What the config supplies is the _name_. Skip
+`update-initramfs -u` and the array comes up as something like `/dev/md127`, because
+the initramfs is still carrying the old config, and the fstab entry then points at a
+device that does not exist. This is the single most common way an mdadm setup
+"breaks" on first reboot.
 {{< /callout >}}
 
 {{% /steps %}}
