@@ -393,7 +393,7 @@ params:
     rail:
       onArticle: true
       profile:
-        avatar: images/avatar.jpg
+        avatar: images/avatar.png
         name: neo7.dev
         tagline: Engineering notes, written down while they are still fresh.
 
