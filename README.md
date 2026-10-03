@@ -212,14 +212,30 @@ certificate warning. The toggle is per record: one proxied apex record breaks
 issuance, and a proxied `www` with a grey apex gives a working apex and a broken
 `www`.
 
-Verify, then tick **Enforce HTTPS** on the published repo once the certificate
-has issued:
+Verify the records resolve:
 
 ```shell
-dig neo7.dev +noall +answer -t A
+dig neo7.dev +noall +answer -t A        # the four GitHub IPs, not Cloudflare's
 dig www.neo7.dev +noall +answer -t CNAME
-curl -sI https://neo7.dev | head -3
 ```
+
+If the `A` answers come back as Cloudflare addresses rather than
+`185.199.108-111.153`, a record is still proxied.
+
+**Then wait.** Pages shows _DNS check in progress_ and that is the normal state,
+not a fault: GitHub verifies DNS first, and only then requests a Let's Encrypt
+certificate over HTTP-01. In between, the site is already live over **HTTP** while
+**HTTPS** does not answer at all - which reads like a broken deploy and is not one:
+
+```shell
+curl -sI http://neo7.dev  | head -3   # 200, Server: GitHub.com - already serving
+curl -sI https://neo7.dev | head -3   # nothing until the certificate issues
+```
+
+Usually minutes, documented as up to 24 hours. Do not re-save the custom domain or
+change proxy status while it runs; both restart the check. When
+`curl -sI https://neo7.dev` returns 200, tick **Enforce HTTPS** on the published
+repo's Pages settings.
 
 Proxying can be turned on afterwards if you want Cloudflare's analytics, WAF or
 Workers in front, with two conditions. SSL/TLS mode must be **Full (strict)** —
