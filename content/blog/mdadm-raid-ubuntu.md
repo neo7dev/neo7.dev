@@ -274,11 +274,16 @@ sudo mdadm --monitor --scan --test --oneshot   # sends a test message now
 `--test` is not optional in practice. An array that reports failures to an address
 nothing delivers to is an array with no monitoring.
 
-**Status, two ways:**
+**Status, two ways.** One line per array, and the fastest check there is:
 
 ```shell
-cat /proc/mdstat                  # one line per array, fast
-sudo mdadm --detail /dev/md0      # state, device roles, failed/spare counts
+cat /proc/mdstat
+```
+
+State, device roles, and failed and spare counts for a single array:
+
+```shell
+sudo mdadm --detail /dev/md0
 ```
 
 The field to read in `--detail` is `State`. `clean` is healthy; `clean, degraded`
