@@ -185,19 +185,59 @@ make gh-watch
 - https://github.com/neo7dev/neo7dev.github.io/settings/pages
 - Source: **Deploy from a branch** → `main` / `/ (root)`
 
-**7. DNS for `neo7.dev`.** Four A records, then enforce HTTPS once the
-certificate issues:
+**7. DNS.** GitHub's documented configuration for an apex domain is four `A` and
+four `AAAA` records, plus `www` as a `CNAME` — see
+[Managing a custom domain for your GitHub Pages site](https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/managing-a-custom-domain-for-your-github-pages-site).
 
-```
-@      A      185.199.108.153
-@      A      185.199.109.153
-@      A      185.199.110.153
-@      A      185.199.111.153
-www    CNAME  neo7dev.github.io
+| Type  | Name  | Value                 | Proxy status    |
+| ----- | ----- | --------------------- | --------------- |
+| A     | `@`   | `185.199.108.153`     | DNS only (grey) |
+| A     | `@`   | `185.199.109.153`     | DNS only (grey) |
+| A     | `@`   | `185.199.110.153`     | DNS only (grey) |
+| A     | `@`   | `185.199.111.153`     | DNS only (grey) |
+| AAAA  | `@`   | `2606:50c0:8000::153` | DNS only (grey) |
+| AAAA  | `@`   | `2606:50c0:8001::153` | DNS only (grey) |
+| AAAA  | `@`   | `2606:50c0:8002::153` | DNS only (grey) |
+| AAAA  | `@`   | `2606:50c0:8003::153` | DNS only (grey) |
+| CNAME | `www` | `neo7dev.github.io`   | DNS only (grey) |
+
+Configure both apex and `www`; Pages redirects between them, in whichever
+direction the custom domain is set. TTL stays on Cloudflare's **Auto**.
+
+**Every one of those nine records must be DNS only — the grey cloud, not the
+orange one.** This is the single place Cloudflare departs from GitHub's
+instructions. GitHub validates the certificate over HTTP-01, which fails behind
+Cloudflare's proxy, so `Enforce HTTPS` never becomes available and visitors get a
+certificate warning. The toggle is per record: one proxied apex record breaks
+issuance, and a proxied `www` with a grey apex gives a working apex and a broken
+`www`.
+
+Verify, then tick **Enforce HTTPS** on the published repo once the certificate
+has issued:
+
+```shell
+dig neo7.dev +noall +answer -t A
+dig www.neo7.dev +noall +answer -t CNAME
+curl -sI https://neo7.dev | head -3
 ```
 
-Rotating the key later means repeating 1–4 with a new pair and removing the old
-deploy key.
+Proxying can be turned on afterwards if you want Cloudflare's analytics, WAF or
+Workers in front, with two conditions. SSL/TLS mode must be **Full (strict)** —
+on Flexible, Cloudflare fetches the origin over HTTP, GitHub redirects it back to
+HTTPS, and the loop surfaces as `ERR_TOO_MANY_REDIRECTS`. And GitHub revalidates
+over HTTP-01 when it renews the certificate, so a proxy that was fine for months
+can break a renewal; expect to grey the records out temporarily if GitHub ever
+reports the certificate as failing. For a static site on Pages there is little to
+gain, so grey is the better default.
+
+**8. Verify the domain** (optional, recommended). GitHub profile → Pages → **Add
+a domain** adds a `TXT` record at `_github-pages-challenge-neo7dev`. Without it,
+if this repo is ever deleted while DNS still points at GitHub, someone else can
+claim `neo7.dev` on their own Pages site — see
+[Verifying your custom domain for GitHub Pages](https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/verifying-your-custom-domain-for-github-pages).
+
+Rotating the deploy key later means repeating 1–4 with a new pair and removing
+the old deploy key.
 
 ### Branch protection
 
