@@ -192,18 +192,11 @@ This might take a while. It is independent of the resync above — you do not ne
 wait for `/proc/mdstat` to reach 100% before formatting or using the array.
 {{< /callout >}}
 
-### Mount it
-
-```shell
-mkdir -p /mnt/array
-mount /dev/md0 /mnt/array
-df -h /mnt/array
-```
-
 ### Get the UUID with `blkid`
 
-The mount above does not survive a reboot, and `/dev/md0` is not a name worth trusting
-in `/etc/fstab` either. Mount by UUID instead:
+`/dev/md0` is not a name worth trusting in `/etc/fstab` — mount by UUID instead. The
+array does not need to be mounted for this; `blkid` reads the filesystem superblock
+directly.
 
 ```shell
 blkid /dev/md0
@@ -219,9 +212,14 @@ prints a different UUID, which identifies the **array**. Putting the array UUID 
 `fstab` gives you a mount that silently never happens.
 {{< /callout >}}
 
-### Add it to `/etc/fstab`
+### Mount it through `/etc/fstab`
 
-Append one line, using the UUID from the previous step:
+Create the mount point, then append one line to `/etc/fstab` using the UUID from the
+previous step:
+
+```shell
+mkdir -p /mnt/array
+```
 
 ```text
 UUID=9d4e1f27-6b3a-4c58-b0d2-7a1e5c93f480  /mnt/array  ext4  defaults,nofail,discard  0  0
@@ -230,11 +228,11 @@ UUID=9d4e1f27-6b3a-4c58-b0d2-7a1e5c93f480  /mnt/array  ext4  defaults,nofail,dis
 `nofail` is the important option: without it, a degraded or missing array drops the
 host into an emergency shell at boot instead of booting without that mount.
 
-Then reload systemd's view of fstab and test the entry before you ever reboot on it:
+Mount it from that entry rather than by hand, so the first mount is the same one the
+next boot will perform:
 
 ```shell
 systemctl daemon-reload
-umount /mnt/array
 mount -a
 findmnt /mnt/array
 ```
