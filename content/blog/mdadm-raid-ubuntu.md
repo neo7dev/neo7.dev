@@ -27,6 +27,7 @@ Software RAID on Ubuntu is handled by mdadm. It supports RAID 0, 1, 5, 6 and 10.
 
 ## The levels
 
+{{< borderless-table >}}
 | Level | Min disks | Usable    | Survives          | Cost                              |
 | ----- | --------- | --------- | ----------------- | --------------------------------- |
 | 0     | 2         | 100%      | nothing           | one disk dies, all data gone      |
@@ -34,6 +35,7 @@ Software RAID on Ubuntu is handled by mdadm. It supports RAID 0, 1, 5, 6 and 10.
 | 5     | 3         | n−1 disks | 1 disk            | read-modify-write on small writes |
 | 6     | 4         | n−2 disks | 2 disks           | two parity computations per write |
 | 10    | 4         | 50%       | 1 per mirror pair | none worth naming                 |
+{{< /borderless-table >}}
 
 Choosing, briefly: **6 over 5** on any array of large disks, because a rebuild reads
 every sector of every remaining disk and that is exactly when a second drive fails.

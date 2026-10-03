@@ -213,6 +213,7 @@ best return, because it removes the reach to the arrow cluster entirely.
 
 ## Which layer to reach for
 
+{{< borderless-table >}}
 | You want to change                                     | Layer                           |
 | ------------------------------------------------------ | ------------------------------- |
 | Which physical key is `cmd`                            | Modifier Keys                   |
@@ -222,6 +223,7 @@ best return, because it removes the reach to the arrow cluster entirely.
 | A remap in one application only                        | Karabiner Complex Modifications |
 | A remap an application refuses to honour               | Karabiner Complex Modifications |
 | A chord that launches something                        | Karabiner, `shell_command`      |
+{{< /borderless-table >}}
 
 Work down the list, not up. The higher layers survive reinstalls, need no
 background process, and cannot conflict with each other. Karabiner is the
