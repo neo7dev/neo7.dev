@@ -1,5 +1,5 @@
 baseURL: "https://neo7.dev/"
-title: "neo7.dev"
+title: "neo7"
 
 enableRobotsTXT: true
 # Attaches each page's last commit as .GitInfo and drives .Lastmod from it
@@ -37,7 +37,7 @@ languages:
   en:
     label: English
     weight: 1
-    title: neo7.dev
+    title: neo7
 
 module:
   hugoVersion:
