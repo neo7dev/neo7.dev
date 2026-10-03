@@ -21,28 +21,29 @@ name.
 
 <!--more-->
 
-The thing that makes fclones usable on a disk you care about is that finding and
-deleting are two separate commands. The search writes a report. You read it. Only then
-does anything get removed.
+What makes fclones usable on a disk you care about is that finding and deleting are two
+separate commands. The search writes a report. You read it. Only then does anything get
+removed.
 
 ## Install
 
 {{< borderless-table >}}
 
-| Where           | Command                                       |
-| --------------- | --------------------------------------------- |
-| Rust toolchain  | `cargo install fclones`                       |
-| macOS           | `brew install fclones`                        |
-| Debian / Ubuntu | `apt install fclones`                         |
-| Anything else   | prebuilt binaries on the GitHub releases page |
+| Where          | Command                           |
+| -------------- | --------------------------------- |
+| Linux          | `snap install fclones`            |
+| macOS or Linux | `brew install fclones`            |
+| Rust toolchain | `cargo install fclones`           |
+| Anything else  | binaries attached to the releases |
 
 {{< /borderless-table >}}
 
-Check the package exists in your distribution before reaching for `cargo` — it arrived
-in Debian and Ubuntu relatively recently.
+Third-party packages exist for Arch, Alpine and NixOS. There is no Debian or Ubuntu
+package — use snap or cargo.
 
 ```shell
 fclones --version
+eval "$(fclones complete bash)"   # completions, if you want them
 ```
 
 ## Two phases
@@ -52,22 +53,28 @@ fclones group ~/photos > dupes.txt   # read-only, writes a report
 fclones remove < dupes.txt           # destructive, consumes the report
 ```
 
-`group` never modifies anything. Everything that deletes, links or moves reads a report
-on stdin. That means you can open the report, delete lines you want spared, and pipe the
-edited file — the second command only acts on what it is given.
+`group` modifies nothing. Every destructive verb reads a report on stdin. So you can
+open the report, delete the lines you want spared, and pipe the edited file — the second
+command acts only on what it is given. Piping straight through works too:
 
-The report looks like this:
-
-```text
-# Report by fclones 0.34.0
-# Timestamp: ...
-2a4f1c90, 4823104 b (4.8 MB) * 3:
-    /srv/source/img_0241.cr2
-    /mnt/backup/2023/img_0241.cr2
-    /mnt/scratch/import/img_0241.cr2
+```shell
+fclones group . | fclones link
 ```
 
-Hash, size, replica count, then one path per copy.
+The report:
+
+```text
+# Report by fclones 0.35.0
+# Timestamp: 2026-10-03 22:14:08.112 +0530
+# Command: fclones group /srv/source /mnt/scratch
+# Found 2 file groups
+# 9.6 MB (9.6 MB) in 2 redundant files can be removed
+7d6ebf613bf94dfd976d169ff6ae02c3, 4823104 B (4.8 MB) * 2:
+/srv/source/img_0241.cr2
+/mnt/scratch/import/img_0241.cr2
+```
+
+Hash, size, replica count, then one path per line.
 
 ## Finding duplicates
 
@@ -77,131 +84,158 @@ fclones group /srv/source /mnt/backup > dupes.txt
 
 Several roots is the normal case — that is how you find the same file in two places.
 
-Narrowing the search:
-
 {{< borderless-table >}}
 
-| Flag                     | Does                                           |
-| ------------------------ | ---------------------------------------------- |
-| `-s, --min-size 1M`      | ignore anything smaller                        |
-| `--max-size 2G`          | ignore anything larger                         |
-| `--name '*.jpg'`         | match on file name glob                        |
-| `--path '**/raw/**'`     | match on full path glob                        |
-| `--exclude '**/.git/**'` | skip a subtree                                 |
-| `-d, --depth 3`          | limit recursion                                |
-| `-H, --hidden`           | include dotfiles                               |
-| `--one-fs`               | do not cross filesystem boundaries             |
-| `-f, --format json`      | machine-readable report (also `csv`, `fdupes`) |
+| Flag                     | Does                                            |
+| ------------------------ | ----------------------------------------------- |
+| `-s 100M`                | ignore anything smaller                         |
+| `--name '*.jpg' '*.png'` | match on file name glob                         |
+| `--path '/home/**'`      | match on full path glob                         |
+| `--exclude '/proc/**'`   | skip a subtree                                  |
+| `--depth 1`              | limit recursion                                 |
+| `--hidden --no-ignore`   | include dotfiles and ignored files              |
+| `-L`                     | follow symbolic links                           |
+| `--isolate`              | match across roots, not within one              |
+| `--unique`               | invert: files with no duplicate                 |
+| `--rf-under 3`           | under-replicated files                          |
+| `--rf-over 3`            | files appearing more than three times           |
+| `--stdin`                | take the file list from stdin, e.g. from `find` |
 
 {{< /borderless-table >}}
 
-`--min-size` earns its place first. Most of the file count on a disk is tiny files whose
-duplication saves nothing, and excluding them makes the run dramatically faster.
+{{< callout type="warning" >}}
+By default fclones **skips hidden files and anything matching `.gitignore` or
+`.fdignore`**. If a file you expected is missing from the report, that is usually why.
+`--hidden --no-ignore` turns both off.
+{{< /callout >}}
 
-## Deleting, keeping the copy in the source directory
+`--isolate` is the one worth knowing for the case below: it finds files that exist in
+both trees without treating two copies inside the same tree as duplicates.
 
-This is the whole point, and it is one flag:
+## Keeping the copy in the source directory
 
 ```shell
 fclones group /srv/source /mnt/scratch > dupes.txt
 fclones remove --keep-path '/srv/source/**' --dry-run < dupes.txt
 ```
 
-Read the output. Then run it for real:
+Read the output. Then run it for real, without `--dry-run`.
 
-```shell
-fclones remove --keep-path '/srv/source/**' < dupes.txt
-```
-
-Every copy outside `/srv/source` goes; the one inside stays. `--drop-path` is the
-inverse — name what to delete instead of what to protect.
-
-{{< callout type="warning" >}}
-`--keep-path` takes a glob against the **full path**, so run `group` with absolute
-roots. A relative root produces relative paths in the report, your absolute pattern
-matches nothing, and the protection you thought you had does not exist.
-{{< /callout >}}
-
-{{< callout type="error" >}}
-`--dry-run` is not optional on a first run. A pattern that matches nothing in a group
-protects nothing in that group. Read the dry-run output for the directory you meant to
-keep before you let it delete anything.
-{{< /callout >}}
-
-## Choosing which copy survives
-
-When no path rule applies, `--priority` decides:
+Four flags select files, and they are symmetrical:
 
 {{< borderless-table >}}
 
-| Value                     | Keeps               |
-| ------------------------- | ------------------- |
-| `newest` / `oldest`       | by creation time    |
-| `most-recently-modified`  | by mtime            |
-| `least-recently-modified` | by mtime            |
-| `most-recently-accessed`  | by atime            |
-| `least-nested`            | the shallowest path |
-| `most-nested`             | the deepest path    |
+| Flag                          | Means                         |
+| ----------------------------- | ----------------------------- |
+| `--path '/trash/**'`          | only remove files under here  |
+| `--name '*.jpg'`              | only remove files named this  |
+| `--keep-path '/important/**'` | never remove files under here |
+| `--keep-name '*.mov'`         | never remove files named this |
 
 {{< /borderless-table >}}
 
+{{< callout type="error" >}}
+The globs match the **full path**, so run `group` with absolute roots. A relative root
+produces relative paths in the report, your absolute pattern matches nothing, and the
+protection you thought you had does not exist. `--dry-run` is how you find that out
+before it costs you.
+{{< /callout >}}
+
+`--dry-run` prints the exact shell commands it would run. The progress log goes to
+stderr, so `2>/dev/null` leaves just the commands:
+
 ```shell
-fclones remove --priority least-nested < dupes.txt
+fclones remove --keep-path '/srv/source/**' --dry-run < dupes.txt 2>/dev/null
 ```
 
-Rules stack: `--keep-path` first, then `--priority` to break ties among the rest.
+## Which copies go
+
+Default: fclones keeps the files at the **start** of each group in the report and
+removes the ones at the end. The report order is therefore the policy, which is why
+editing the report works.
+
+`--priority` changes that order, and it names what gets **removed**:
+
+```shell
+fclones remove --priority newest < dupes.txt   # remove the newest replicas
+fclones remove --priority oldest < dupes.txt   # remove the oldest replicas
+```
+
+`fclones remove --help` lists the rest.
+
+To keep more than one copy, `-n` sets how many survive per group:
+
+```shell
+fclones remove -n 2 < dupes.txt   # leave two replicas
+```
 
 ## Instead of deleting
 
 Same report, different verb:
 
 ```shell
-fclones link < dupes.txt       # replace duplicates with hard links
-fclones link --soft < dupes.txt  # symlinks instead
-fclones dedupe < dupes.txt     # reflink/copy-on-write, on btrfs, XFS and APFS
+fclones link < dupes.txt            # hard links
+fclones link -s < dupes.txt         # symbolic links (also --soft)
+fclones dedupe < dupes.txt          # reflink, on btrfs, XFS and APFS
 fclones move /mnt/quarantine < dupes.txt
 ```
 
-`dedupe` is the one to prefer where the filesystem supports it: the copies keep separate
-inodes and separate metadata, but share the underlying blocks until one is written to.
-Hard links do not — edit one and you have edited all of them.
+`dedupe` is the one to prefer where the filesystem supports it: copies keep separate
+inodes and separate metadata but share blocks until one is written to. Hard links do not
+— edit one and you have edited all of them.
 
-`move` is the cautious option. Nothing is destroyed, the duplicates land somewhere you
-can inspect, and you delete that directory when you are satisfied.
+`move` destroys nothing. The duplicates land somewhere you can inspect, and you delete
+that directory once you are satisfied.
 
 ## Speed
 
 ```shell
-fclones group --cache -t 8 --hash-fn blake3 /srv /mnt/backup > dupes.txt
+fclones group --cache /srv /mnt/backup > dupes.txt
 ```
 
-- **`--cache`** stores hashes between runs. The second run over the same tree skips
-  everything unchanged, which turns a repeat dedupe from minutes into seconds.
-- **`-t, --threads`** — the default is tuned for SSDs. On spinning disks, more threads is
-  usually slower, not faster.
-- **`--hash-fn`** defaults to a fast non-cryptographic hash, which is the right default
-  for finding duplicates. Matching is decided by that hash, so if you want a
-  cryptographic guarantee against a crafted collision, ask for `blake3` or `sha256`.
+`--cache` persists each hash with the file's size and mtime. Subsequent runs over the
+same tree skip everything unchanged, and an interrupted run resumes cheaply. On a large
+dataset it is the single flag worth adding.
 
-fclones is cheap by design: it groups by size first, then by a prefix of each file, and
-only hashes in full what survives both.
+The hashing ladder is why it is fast without the cache: group by size, drop unique
+sizes, drop same-inode entries, hash a block from the start, hash a block from the end,
+and only then hash the whole file — pruning groups at every step.
+
+{{< borderless-table >}}
+
+| `--hash-fn`         | Width   | Cryptographic |
+| ------------------- | ------- | ------------- |
+| `metro` _(default)_ | 128-bit | no            |
+| `xxhash3`           | 128-bit | no            |
+| `blake3`            | 256-bit | yes           |
+| `sha256` / `sha512` | 256/512 | yes           |
+
+{{< /borderless-table >}}
+
+{{< callout type="info" >}}
+fclones never compares files byte for byte. Matching is decided by the hash, which is
+why every option is at least 128 bits wide. The default is fine unless your threat model
+includes someone deliberately crafting a collision.
+{{< /callout >}}
 
 ## Traps
 
-- **Already-hardlinked files are not duplicates.** They share an inode, so there is
-  nothing to reclaim and fclones does not report them.
+- **Hard-linked and symlinked files are not duplicates.** They already share data, so
+  there is nothing to reclaim. `--match-links` changes that, and combining it with
+  `--symbolic-links` is how you end up with a directory of orphan links.
 - **The report goes stale.** It records paths and hashes at a moment in time. Regenerate
   it rather than reusing yesterday's against a tree that has moved on.
 - **`remove` follows the report, not the disk.** If you edited the report, what you
-  edited is what happens. That is the feature, and it is also the way to delete something
-  you meant to keep.
-- **Check `--rf-over` if the counts look wrong.** It sets how many replicas make a group
-  interesting; the default finds anything appearing more than once, which is usually what
-  you want and occasionally is not.
+  edited is what happens. That is the feature, and also the way to delete something you
+  meant to keep.
+- **Quote your globs.** An unquoted `--name *.jpg` is expanded by the shell before
+  fclones sees it.
 
 ## Reference
 
-The manual is thorough and worth reading once:
+[pkolaczk/fclones](https://github.com/pkolaczk/fclones). The README covers link
+handling, `--transform` for preprocessing files before matching, and the cache
+internals.
 
 ```shell
 fclones group --help
