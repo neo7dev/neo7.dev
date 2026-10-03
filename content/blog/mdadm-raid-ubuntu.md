@@ -15,10 +15,7 @@ coverText: |
 ---
 
 {{< lead >}}
-Creating an array is one command. Everything that keeps it alive is the rest: write
-the config and rebuild the initramfs or it will not assemble on reboot, enable mail
-alerts or a failure is silent, scrub monthly, and rehearse a disk replacement before
-you need one.
+RAID on Ubuntu with mdadm.
 {{< /lead >}}
 
 <!--more-->
@@ -26,38 +23,7 @@ you need one.
 RAID is uptime, not backup. A deleted file is deleted on every disk at once. What it
 buys is staying online through a dead drive, and more throughput than one spindle.
 
-## Before you create anything
-
-Identify the disks and confirm they are the ones you think:
-
-```shell
-lsblk -o NAME,SIZE,TYPE,MOUNTPOINT,MODEL,SERIAL
-```
-
-Install the tools, then wipe any old signature — a leftover superblock makes an array
-assemble itself at boot under a name you did not choose:
-
-```shell
-sudo apt install mdadm
-sudo wipefs -a /dev/sdb
-sudo mdadm --zero-superblock /dev/sdb   # only if it was in a previous array
-```
-
-**Partition or whole disk?** Whole disks work. Partitions are better: create one
-partition a few GB short of the disk, and a replacement drive that is nominally the
-same size but a few sectors smaller still fits.
-
-```shell
-sudo parted /dev/sdb mklabel gpt
-sudo parted -a optimal /dev/sdb mkpart primary 0% 100%
-sudo parted /dev/sdb set 1 raid on
-```
-
-{{< callout type="error" >}}
-`mdadm --create` destroys everything on every device listed. Check `lsblk` output
-against the serial numbers, not against the letters — `/dev/sdX` names are assigned
-in discovery order and can change between boots.
-{{< /callout >}}
+Software RAID on Ubuntu is handled by mdadm. It supports RAID 0, 1, 5, 6 and 10.
 
 ## The levels
 
@@ -74,7 +40,81 @@ every sector of every remaining disk and that is exactly when a second drive fai
 **10 over 5/6** when the workload is random writes — no parity, no read-modify-write.
 **1** for two disks. **0** only for scratch data you can regenerate.
 
-## Creating each level
+## Prerequisites
+
+1. Ubuntu 22.04 LTS or higher.
+2. Two or more drives you can erase, enough for the level you picked above.
+
+## Setting up the array
+
+{{% steps %}}
+
+### Get a `sudo -s` session
+
+Since we will be running multiple commands as sudo, it is better to run this entire
+thing in a single sudo session. Every command below assumes you are root from here on.
+
+```shell
+sudo -s
+```
+
+### Install mdadm
+
+```shell
+apt install mdadm
+```
+
+### Check if the drives show up
+
+Identify the disks and confirm they are the ones you think:
+
+```shell
+cat /proc/partitions
+```
+
+Or, with sizes, models and serials:
+
+```shell
+lsblk -o NAME,SIZE,TYPE,MOUNTPOINT,MODEL,SERIAL
+```
+
+Note down the drives you want to use for RAID, such as `/dev/sdb` and `/dev/sdc`.
+
+{{< callout type="error" >}}
+`mdadm --create` destroys everything on every device listed. Check `lsblk` output
+against the serial numbers, not against the letters — `/dev/sdX` names are assigned
+in discovery order and can change between boots.
+{{< /callout >}}
+
+### Partition the disks
+
+Use `fdisk` to partition the drives:
+
+```shell
+fdisk /dev/sdb
+```
+
+Then, at its prompt:
+
+1. `p` to view the existing partitions.
+2. `n` to create a new partition.
+3. `p` to select the primary partition type.
+4. `1` for the partition number.
+5. Leave the rest of the settings as defaults.
+6. _Do you want to remove the signature?_ — select `Yes`.
+7. `p` again to view the partition that was created.
+8. `w` to write the changes.
+
+Repeat the same process for all the drives. After that is done, run `partprobe`. On
+Ubuntu it is not strictly necessary, but do it anyway.
+
+```shell
+partprobe
+```
+
+Check the partitions appeared, with either of the commands from the previous step.
+
+### Create the array
 
 All of these take the same shape. `/dev/md0` is the array name, `--raid-devices` is
 the count, and the device list follows.
@@ -82,31 +122,31 @@ the count, and the device list follows.
 **RAID 0** — striping, no redundancy:
 
 ```shell
-sudo mdadm --create /dev/md0 --level=0 --raid-devices=2 /dev/sd[bc]1
+mdadm --create /dev/md0 -a yes --level=0 --raid-devices=2 /dev/sd[bc]1
 ```
 
 **RAID 1** — mirror:
 
 ```shell
-sudo mdadm --create /dev/md0 --level=1 --raid-devices=2 /dev/sd[bc]1
+mdadm --create /dev/md0 -a yes --level=1 --raid-devices=2 /dev/sd[bc]1
 ```
 
 **RAID 5** — single parity, three disks minimum:
 
 ```shell
-sudo mdadm --create /dev/md0 --level=5 --raid-devices=3 /dev/sd[bcd]1
+mdadm --create /dev/md0 -a yes --level=5 --raid-devices=3 /dev/sd[bcd]1
 ```
 
 **RAID 6** — double parity, four disks minimum:
 
 ```shell
-sudo mdadm --create /dev/md0 --level=6 --raid-devices=4 /dev/sd[bcde]1
+mdadm --create /dev/md0 -a yes --level=6 --raid-devices=4 /dev/sd[bcde]1
 ```
 
 **RAID 10** — striped mirrors, four disks minimum:
 
 ```shell
-sudo mdadm --create /dev/md0 --level=10 --raid-devices=4 /dev/sd[bcde]1
+mdadm --create /dev/md0 -a yes --level=10 --raid-devices=4 /dev/sd[bcde]1
 ```
 
 Two optional flags worth knowing:
@@ -139,27 +179,75 @@ md0 : active raid6 sde1[3] sdd1[2] sdc1[1] sdb1[0]
 `[UUUU]` is one character per device: `U` up, `_` missing. That line is the fastest
 health check there is.
 
-## Filesystem, mount, and the two steps everyone forgets
+### Format the array
+
+Format the array in ext4:
 
 ```shell
-sudo mkfs.ext4 /dev/md0
-sudo mkdir -p /mnt/array
-sudo mount /dev/md0 /mnt/array
+mkfs.ext4 /dev/md0
+```
+
+{{< callout type="info" >}}
+This might take a while. It is independent of the resync above — you do not need to
+wait for `/proc/mdstat` to reach 100% before formatting or using the array.
+{{< /callout >}}
+
+### Mount it
+
+```shell
+mkdir -p /mnt/array
+mount /dev/md0 /mnt/array
+df -h /mnt/array
+```
+
+### Get the UUID with `blkid`
+
+The mount above does not survive a reboot, and `/dev/md0` is not a name worth trusting
+in `/etc/fstab` either. Mount by UUID instead:
+
+```shell
 blkid /dev/md0
 ```
 
-Add it to `/etc/fstab` by UUID, with `nofail` so a degraded or missing array does not
-drop the host into an emergency shell at boot:
-
 ```text
-UUID=<from blkid>  /mnt/array  ext4  defaults,nofail,discard  0  0
+/dev/md0: UUID="9d4e1f27-6b3a-4c58-b0d2-7a1e5c93f480" BLOCK_SIZE="4096" TYPE="ext4"
 ```
 
-Then the part that decides whether the array exists after a reboot:
+{{< callout type="warning" >}}
+Use the UUID that `blkid` prints — that is the **filesystem** UUID. `mdadm --detail`
+prints a different UUID, which identifies the **array**. Putting the array UUID in
+`fstab` gives you a mount that silently never happens.
+{{< /callout >}}
+
+### Add it to `/etc/fstab`
+
+Append one line, using the UUID from the previous step:
+
+```text
+UUID=9d4e1f27-6b3a-4c58-b0d2-7a1e5c93f480  /mnt/array  ext4  defaults,nofail,discard  0  0
+```
+
+`nofail` is the important option: without it, a degraded or missing array drops the
+host into an emergency shell at boot instead of booting without that mount.
+
+Then reload systemd's view of fstab and test the entry before you ever reboot on it:
 
 ```shell
-sudo mdadm --detail --scan | sudo tee -a /etc/mdadm/mdadm.conf
-sudo update-initramfs -u
+systemctl daemon-reload
+umount /mnt/array
+mount -a
+findmnt /mnt/array
+```
+
+If `mount -a` is silent and `findmnt` shows the mount, the entry is correct. An error
+here is one you can fix at a prompt; the same error at boot is one you fix from a
+rescue console.
+
+### Save the array config and rebuild the initramfs
+
+```shell
+mdadm --detail --scan | tee -a /etc/mdadm/mdadm.conf
+update-initramfs -u
 ```
 
 {{< callout type="warning" >}}
@@ -168,6 +256,8 @@ Skip `update-initramfs -u` and the array assembles under a generated name like
 entry then points at a device that does not exist. This is the single most common
 way an mdadm setup "breaks" on first reboot.
 {{< /callout >}}
+
+{{% /steps %}}
 
 ## Monitoring
 
