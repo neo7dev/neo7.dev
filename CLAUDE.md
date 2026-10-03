@@ -161,6 +161,47 @@ there is a real cover image.
 file, not from front matter. Do not add a `lastmod` key to work around a date
 looking wrong — commit properly instead.
 
+### How a blog post opens
+
+Two conventions, both visible in any post under `content/blog/` other than
+`welcome.md`, which predates them.
+
+**`coverText` is a command, not a phrase.** The cover slot renders its value as a
+shell line behind the `params.command.prompt` glyph, so it reads as something you
+could type: `docker --app-armor`, `keyboard --remap`, `coquitts --finetune`,
+`vault --isolate`. Pick the tool or subject, then a flag naming what the post
+does with it. Keep it to one line — `params.command.coverRatio` is divided by the
+line count, so a second line halves the type size.
+
+**The first thing in the body is a `lead`, above `<!--more-->`.** It states the
+post's conclusions in a sentence or two — what a reader would take away if they
+read nothing else. Write it as prose. Do not label it "TL;DR" or anything else;
+the larger type is the label.
+
+```markdown
+{{< lead >}}
+The three or four things the post concludes, stated flat.
+{{< /lead >}}
+
+<!--more-->
+
+The opening paragraph, which is now body text rather than the excerpt.
+```
+
+The two summary paths feed different places and both are wanted:
+
+- `summary` in front matter is what the blog list card shows.
+- The text above `<!--more-->` — the lead — becomes `.Summary`, which is what the
+  page's `description`, Open Graph and Twitter meta tags use.
+
+So the card gets the framing sentence and a search result gets the conclusions.
+Dropping either leaves one of them falling back to the first paragraph of prose,
+which reads as a truncated sentence.
+
+`lead` takes `{{< >}}` and markdownifies its body, so `**bold**` and backticks
+work inside it — but keep the content flush left. Four spaces of indentation
+inside a markdownified shortcode is an indented code block.
+
 ### content/internal/ is never published
 
 A third section alongside `docs/` and `blog/`, blog-shaped via `cascade: type: blog`,
