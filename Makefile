@@ -37,7 +37,7 @@ GH_OWNER ?= neo7dev
 # Default base branch for pull requests.
 BASE ?= main
 
-# Opt-in destination pruning: `make build CLEAN=1`.
+# Destination pruning is on by default for `make build`; `CLEAN=0` keeps stale files.
 #
 # --cleanDestinationDir deletes anything in public/ this build did not produce -
 # renamed pages, stale fingerprinted CSS, whatever `make dev` left behind with
@@ -46,8 +46,12 @@ BASE ?= main
 #
 # Different from --gc, which clears the resources/ cache and never touches the
 # destination. `make clean` is stricter still: it removes both outright.
-CLEAN ?= 0
-CLEAN_DEST := $(if $(filter 1 true yes on,$(CLEAN)),--cleanDestinationDir,)
+# `build` is the only target that writes public/, so it prunes by DEFAULT: CI builds
+# into an empty checkout, and a stale page left from an earlier build is a difference
+# from CI rather than a convenience. CLEAN=0 opts out; anything else, unset included,
+# prunes. No `CLEAN ?=` default, because that makes "unset" indistinguishable from
+# "explicitly 0".
+BUILD_CLEAN_DEST := $(if $(filter 0 false no off,$(CLEAN)),,--cleanDestinationDir)
 
 # Colours, but only when stdout is a TTY, so piped output and CI logs stay clean.
 ifneq (,$(findstring xterm,$(TERM)))
@@ -97,7 +101,7 @@ help: ## Show this help
 
 .PHONY: dev
 dev: ## Serve on :8043 with live reload, drafts and future posts
-	hugo server --disableFastRender -D -F --port $(PORT) --bind 0.0.0.0
+	hugo server --disableFastRender --renderToMemory -D -F --port $(PORT) --bind 0.0.0.0
 
 # --appendPort=false is required for the baseURL to stay clean; without it the
 # server advertises the base URL with the port glued on. The cost is LiveReload:
@@ -112,9 +116,14 @@ dev: ## Serve on :8043 with live reload, drafts and future posts
 # preconnect and the two gtag scripts. `prod` is left alone, because its whole
 # job is to reproduce the CI build byte for byte.
 .PHONY: preview
+# --renderToMemory on both servers. Without it `hugo server` overlays its in-memory
+# render on the real publishDir, so a page left in public/ by an earlier build is
+# served even when this environment never rendered it - which is how `make preview`
+# came to serve internal/ while the production build correctly excluded it. Serving
+# nothing from disk makes the environment the only thing that decides what exists.
 preview: ## Serve on :8043 as production: real baseURL, minified, no drafts, no analytics
 	HUGO_SERVICES_GOOGLEANALYTICS_ID="" \
-	  hugo server --environment production --minify \
+	  hugo server --environment production --minify --renderToMemory \
 	  --baseURL "$(BASE_URL)" --appendPort=false \
 	  --port $(PORT) --bind 0.0.0.0
 
@@ -200,7 +209,7 @@ new-blog: ## Create a blog post, prompting for front matter: make new-blog [TITL
 	   echo ''; \
 	 } > "$$path"; \
 	 $(OK) "created $$path"; \
-	 $(WARN) "draft: true - visible under make dev, excluded from make prod"
+	 $(WARN) "draft: true - visible under make dev, excluded from make build"
 
 .PHONY: new-doc
 new-doc: ## Create a docs page, prompting for front matter: make new-doc [TITLE=...]
@@ -252,12 +261,49 @@ new-page: ## Create a bare page from archetypes/default.md: make new-page NAME=s
 ##@ Build
 
 .PHONY: build
-build: ## Write public/ (add CLEAN=1 to prune files this build did not produce)
-	hugo --gc --minify $(CLEAN_DEST)
+# The only target that writes public/. Same flags as the publish job, so what lands
+# on disk is what CI would publish - which is why check-unpublished runs here.
+build: ## Write public/ as CI does, at $(BASE_URL) (prunes; CLEAN=0 to keep stale files)
+	hugo --gc --minify $(BUILD_CLEAN_DEST) --baseURL "$(BASE_URL)"
+	@$(MAKE) --no-print-directory check-unpublished
 
 .PHONY: prod
-prod: ## Write public/ as CI does, at $(BASE_URL) (add CLEAN=1 to prune)
-	hugo --gc --minify $(CLEAN_DEST) --baseURL "$(BASE_URL)"
+# The same flags, environment and base URL as the publish job, rendered to memory:
+# it answers "would CI's build succeed" and writes nothing. A build error still
+# exits non-zero, so this is a real check and not a dry run in name only.
+#
+# Nothing to prune, nothing to leak, and no stale public/ to confuse the next
+# `make preview`. Use `make build` when you want the files.
+prod: ## Verify the CI build succeeds, writing nothing (in memory)
+	hugo --gc --minify --renderToMemory --baseURL "$(BASE_URL)"
+
+.PHONY: check-unpublished
+# Asserts what config/development/hugo.yaml's mount is supposed to guarantee, rather
+# than trusting it. That mount is config, and config gets edited by someone who does
+# not know what it is for - while a published internal note cannot be unpublished,
+# because the output repo is public and git history is forever.
+#
+# Greps the whole tree rather than only looking for public/internal/: a page can
+# reach the flexsearch index, llms.txt or a feed without having a directory.
+check-unpublished: ## Fail if anything from internal/ reached public/
+	@$(SAY) "Checking nothing internal was published"
+	@if [ ! -d public ]; then $(WARN) "no public/ yet - build first"; exit 0; fi
+	@bad=0; \
+	 if [ -e public/internal ]; then $(ERR) "public/internal/ exists"; bad=1; fi; \
+	 for f in internal/*.md; do \
+	   [ -e "$$f" ] || continue; \
+	   case "$$f" in */_index.md) continue ;; esac; \
+	   slug="$$(basename "$$f" .md)"; \
+	   if grep -rqF "/internal/$$slug" public/ 2>/dev/null; then \
+	     $(ERR) "$$slug is referenced somewhere in public/"; bad=1; \
+	   fi; \
+	 done; \
+	 if [ $$bad -ne 0 ]; then \
+	   $(WARN) "left over from an earlier build? run: make clean && make build"; \
+	   $(WARN) "otherwise internal/ is being mounted into a production build"; \
+	   exit 1; \
+	 fi; \
+	 $(OK) "no internal content in public/"
 
 .PHONY: clean
 clean: ## Remove build output

@@ -1,0 +1,22 @@
+# Development-only overrides, merged over the root hugo.yaml. `hugo server` defaults
+# to this environment and `hugo` defaults to production, which is the whole
+# mechanism.
+#
+# internal/ lives OUTSIDE content/ and is mounted in here. Production declares no
+# such mount, so the files are not part of the site at all - there is nothing to
+# exclude, and so nothing an exclusion could fail to apply to.
+#
+# That matters because the obvious approaches do not hold. `ignoreFiles` is honoured
+# by `hugo` but NOT by `hugo server`, so `make preview` served the section while the
+# build excluded it. A mount `excludeFiles` is deprecated as of Hugo v0.153.0, and
+# its replacement `files` takes include globs without `!` negation. Declaring the
+# content mount only where the extra source belongs sidesteps all of it.
+#
+# The content mount has to be restated: declaring any mount for a component
+# replaces Hugo's default for that component rather than adding to it.
+module:
+  mounts:
+    - source: content
+      target: content
+    - source: internal
+      target: content/internal
