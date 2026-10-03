@@ -436,7 +436,9 @@ place until `/proc/mdstat` shows the reshape finished.
   and will keep doing so until the next disk goes. The only thing that tells you is
   the monitoring you set up above.
 
----
+## Reference
 
-Reference: [How to Setup Software RAID with MDADM Command on Linux
+{{< youtube-lite id="O3Iq9hx8V7U" label="How to Setup Software RAID with MDADM Command on Linux Ubuntu" >}}
+
+[How to Setup Software RAID with MDADM Command on Linux
 Ubuntu](https://www.youtube.com/watch?v=O3Iq9hx8V7U) — Hetman Software.
