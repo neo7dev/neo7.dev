@@ -99,9 +99,18 @@ help: ## Show this help
 
 ##@ Develop
 
+# The GA4 blanking is belt and braces. `hugo server` defaults to the development
+# environment and Hextra emits gtag.js only on `hugo.IsProduction`, so this target
+# is already untracked - but that is two conditions away from the ID, and
+# `hugo server -e production` is the documented way to check production-gated
+# output. Setting it here means no local page view reaches the property however
+# the target is invoked. `preview` carries the same line for the same reason;
+# `prod` deliberately does not.
 .PHONY: dev
 dev: ## Serve on :8043 with live reload, drafts and future posts
-	hugo server --disableFastRender --renderToMemory -D -F --port $(PORT) --bind 0.0.0.0
+	HUGO_SERVICES_GOOGLEANALYTICS_ID="" \
+	  hugo server --disableFastRender --renderToMemory -D -F \
+	  --port $(PORT) --bind 0.0.0.0
 
 # --appendPort=false is required for the baseURL to stay clean; without it the
 # server advertises the base URL with the port glued on. The cost is LiveReload:
